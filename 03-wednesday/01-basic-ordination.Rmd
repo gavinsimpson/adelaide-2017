@@ -1,0 +1,63 @@
+---
+title: "Basic Ordination"
+author: Gavin L. Simpson
+date: U Adelaide 2017 • Feb 13--17 2017
+fontsize: 10pt
+classoption: "compress, aspectratio=169"
+bibliography: vegan-refs.bib
+output:
+  beamer_presentation:
+    theme: metropolis
+    keep_tex: true
+    highlight: tango
+    slide_level: 2
+    template: ~/work/teaching/adelaide/feb-2017/slide-template-feb-2017.tex
+    fig_width: 6
+    fig_height: 3.5
+    fig_crop: false
+    pandoc_args: [
+      "--latex-engine=xelatex"
+    ]
+---
+
+```{r setup-options, echo = FALSE, results = "hide", message = FALSE}
+knitr::opts_chunk$set(comment=NA, fig.align = "center",
+                      out.width = "0.7\\linewidth",
+                      echo = TRUE, message = TRUE, warning = TRUE,
+                      cache = TRUE)
+knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
+```
+
+```{r packages, echo = FALSE, results = "hide", message = FALSE}
+library("vegan")
+data(varespec)
+data(varechem)
+```
+
+# Introduction
+
+## Introduction
+
+
+
+# Unconstrained Ordination
+
+## Unconstrained Ordination
+
+
+## Links
+
+I have several **vegan**-related posts on my blog. For a list of posts see [http://www.fromthebottomoftheheap.net/blog/]()
+
+## Re-use
+
+Copyright \textcopyright (2015--17) Gavin L. Simpson *Some Rights Reserved*
+
+Unless indicated otherwise, this slide deck is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
+
+\begin{center}
+  \ccby
+\end{center}
+
+## References
+
