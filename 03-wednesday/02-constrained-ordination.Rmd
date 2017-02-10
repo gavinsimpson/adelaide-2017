@@ -28,7 +28,7 @@ knitr::opts_chunk$set(comment=NA, fig.align = "center",
 knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
 ```
 
-```{r packages, echo = FALSE, results = "hide", message = FALSE}
+```{r packages, echo = FALSE, results = "hide", message = FALSE, cache=FALSE}
 library("vegan")
 data(varespec)
 data(varechem)
