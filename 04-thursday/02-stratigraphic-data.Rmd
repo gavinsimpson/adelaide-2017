@@ -1,0 +1,412 @@
+---
+title: "Stratigraphic Data"
+author: Gavin L. Simpson
+date: U Adelaide 2017 • Feb 13--17 2017
+fontsize: 10pt
+classoption: "compress, aspectratio=169"
+bibliography: 00-refs.bib
+output:
+  beamer_presentation:
+    theme: metropolis
+    keep_tex: true
+    highlight: tango
+    slide_level: 2
+    template: ~/work/teaching/adelaide/feb-2017/slide-template-feb-2017.tex
+    fig_width: 6
+    fig_height: 3.5
+    fig_crop: false
+    pandoc_args: [
+      "--latex-engine=xelatex"
+    ]
+---
+
+```{r setup-options, echo = FALSE, results = "hide", message = FALSE}
+knitr::opts_chunk$set(comment=NA, prompt=TRUE, fig.align = "center",
+                      out.width = "0.7\\linewidth",
+                      echo = FALSE, message = TRUE, warning = TRUE,
+                      cache = TRUE)
+knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
+```
+
+```{r packages, echo = FALSE, results = "hide", message = FALSE, cache=FALSE}
+library("analogue")
+library("rioja")
+library("partykit")
+library("tidyr")
+library("ggplot2")
+library("cowplot")
+theme_set(theme_bw())
+```
+
+# Introduction
+
+## Introduction
+
+# Summarising stratigraphic data
+
+## Summarising change in stratigraphic data
+
+- Ordination commonly used to describe patterns of change in multivariate sediment core data
+- PCA, CA, or even DCA axis 1 and 2 scores commonly used
+- These methods capture largest patterns of variation in underlying data under assumption of particular model
+- Can be upset by data sets with a dominant gradient
+- Can apply all techniques learned earlier in workshop to stratigraphic data
+- Can we do any better than these methods?
+
+## Principal Curves
+
+A single long or dominant gradient in an (palaeo)ecological data set poses particular problems for PCA and CA --- \alert{horseshoe} or \alert{arch}
+
+```{r plot-abernethy, crop.plot = TRUE, fig.width=18, fig.height=10}
+data(abernethy)
+Stratiplot(Age ~ . - Depth,
+           data = chooseTaxa(abernethy, n.occ = 5, max.abun = 10),
+           type = c("g","l","h"), lwd.h = 1, sort = "wa", labelAt = 0, labelRot = 60)
+```
+
+Abernethy Forest pollen data (Birks & Mathewes, 1978)
+
+## Principal Curves
+
+A single long or dominant gradient in an (palaeo)ecological data set poses particular problems for PCA and CA --- \alert{horseshoe} or \alert{arch}
+
+Trend is broken over two or more axes:
+
+```{r plot-abernethy-pca, fig.width=10, fig.height=4.5}
+abernethy2 <- abernethy[, -(37:38)]
+pc <- rda(abernethy2)
+scrs <- scores(pc, display = "sites", scaling = "sites")
+scrs <- as.data.frame(cbind(Age = abernethy$Age, scrs))
+gscrs <- gather(scrs, key = "Axis", value = "Score", - Age)
+p1 <- ggplot(gscrs, aes(x = Score, y = Age)) +
+    geom_path() + geom_point() + facet_wrap(~ Axis) + scale_y_reverse() +
+    labs(y = "Radiocarbon age", x = "Axis score")
+p2 <- ggplot(scrs, aes(x = PC1, y = PC2)) +
+    geom_path() + geom_point() + coord_equal() +
+    labs(x = "PCA axis 1", y = "PCA axis 2")
+plot_grid(p1, p2, ncol = 2)
+```
+
+Can we generalise the PCA solution to be a smooth, non-linear surface?
+
+## Principal Curves --- Comparison of estimation techniques
+
+- In OLS regression, $y$ is the response and $x$ is assumed without error
+- Errors are minimised in $y$ only --- sums of squared errors
+- PCA can be seen as a regression of $y$ on $x$ where neither $y$ nor $x$ plays the role of response or predictor
+- In PCA, errors in both $x$ and $y$ are minimised --- sums of squared orthogonal errors
+
+## Principal Curves --- Comparison of estimation techniques
+
+```{r comparison-figure, fig.height=6, fig.width=6, out.width="0.55\\linewidth"}
+set.seed(123)
+N <- 50
+x <- seq(0, 1, length = N)
+y <- 0 + (-0.9 * x) + (2 * x^2) + (-1.4 * x^3) + rnorm(N, sd = 0.05)
+d <- data.frame(x = x, y = y)
+d.s <- sweep(d, 2, colMeans(d))
+d.s <- sweep(d.s, 2, apply(d, 2, sd), "/")
+
+pc.d <- prcurve(d.s, method = "pca", trace = FALSE, maxit = 20)
+pca.d <- prcurve(d.s, method = "pca", trace = FALSE, complexity = 2)
+
+lm.d <- lm(y ~ x, data = d.s)
+ssp.d <- with(d.s, smooth.spline(x, y, cv = FALSE)) ## use GCV
+p.ssp <- with(d.s, predict(ssp.d, x))
+ord.ssp <- with(p.ssp, order(x))
+
+## plot
+layout(matrix(1:4, ncol = 2, byrow = TRUE))
+CEX <- 0.8
+op <- par(mar = c(4,4,2,1) + 0.1, cex = CEX, cex.lab = CEX, cex.axis = CEX, cex.sub = CEX)
+ylim <- range(d.s$y, pc.d$s[,2])
+xlim <- range(d.s$x, pc.d$s[,1])
+ord <- with(d.s, order(x))
+ordy <-  with(d.s, order(y))
+## plot 1 - lm fit
+plot(y ~ x, data = d.s, type = "n", ylim = ylim, xlim = xlim, asp = 1,
+     main = "a")
+segments(d.s$x, d.s$y, d.s$x, fitted(lm.d), col = "forestgreen")
+lines(d.s$x[ord], fitted(lm.d)[ord], col = "red", lwd = 2)
+points(y ~ x, data = d.s, pch = 21, bg = "white")
+## plot 2 - principal component fit
+plot(y ~ x, data = d.s, type = "n", ylim = ylim, xlim = xlim, asp = 1,
+     main = "b")
+segments(d.s$x, d.s$y, pca.d$s[,1], pca.d$s[,2], col = "forestgreen")
+lines(pca.d$s[pca.d$tag,], col = "red", lwd = 2)
+points(y ~ x, data = d.s, pch = 21, bg = "white")
+## plot 3 smooth spline fit
+plot(y ~ x, data = d.s, type = "n", ylim = ylim, xlim = xlim, asp = 1, main = "c")
+segments(d.s$x, d.s$y, p.ssp$x, p.ssp$y, col = "forestgreen")
+lines(p.ssp$x[ord.ssp], p.ssp$y[ord.ssp], col = "red", lwd = 2)
+points(y ~ x, data = d.s, pch = 21, bg = "white")
+## plot 4 - principal curve
+plot(y ~ x, data = d.s, type = "n", ylim = ylim, xlim = xlim, asp = 1, main = "d")
+segments(d.s$x, d.s$y, pc.d$s[,1], pc.d$s[,2], col = "forestgreen")
+lines(pc.d$s[pc.d$tag,], col = "red", lwd = 2)
+points(y ~ x, data = d.s, pch = 21, bg = "white")
+par(op)
+layout(1)
+```
+
+## Principal Curves --- Comparison of estimation techniques
+
+We can generalise the OLS model to a regression of $y$ on $x$ using a smooth function of $x$, $f(x)$, as the predictor
+
+$f(x)$ can be estimated using a multitude of techniques
+
+- Loess smoother
+- Local-linear smooths
+- Smoothing splines
+- Regression splines
+- ...
+
+$f(x)$ is usually estimated from the data, with smoothness determined by minimising a penalised sums of squares criterion under CV (or GCV): **Errors are still assessed in $y$ only**
+
+## Principal Curves --- Comparison of estimation techniques
+
+```{r comparison-figure-2, ref.label="comparison-figure", fig.height=6, fig.width=6, out.width="0.55\\linewidth"}
+```
+
+## Principal Curves --- Comparison of estimation techniques
+
+- Ideally we would generalise PCA to find non-linear manifolds in the same way as we went from OLS to semi-parametric regression using smoothers
+- This is exactly what is done in the method of \alert{principal curves}
+- Our aim is to estimate as the principal curve, a 1-d manifold that passes through the data in high-dimensions that minimises the sum of squared orthogonal errors
+- We bend the principal component (for example) towards the data to achieve a better fit to the data
+- How far and how flexibly we can bend the curve towards the data is determined from the data to minimise a penalized criterion during fitting
+
+## Principal Curves --- Comparison of estimation techniques
+
+```{r comparison-figure-3, ref.label="comparison-figure", fig.height=6, fig.width=6, out.width="0.55\\linewidth"}
+```
+
+## Principal Curves --- Fitting algorithm
+
+- Start with any smooth curve --- the first or second PCA or CA axis
+- Begin the \alert{Projection Step}
+    - All objects are projected onto a point on the smooth curve that they are closest too
+    - The distances of the points along the curve that each object projects onto are determined
+- Begin the \alert{Local Averaging Step}
+    - Bend the current smooth curve towards the data so that the sum of squared orthogonal distances is reduced
+    - Taking each species (variable) in turn as the response, fit a smoother to predict the response using distance along the current curve as the predictor variable
+    - Repeat for all species (variables) and collect the fitted values of the individual smoothers into a matrix that described the new location of the curve in high dimensions
+- If the new curve is sufficiently similar to the current curve, declare convergence
+- If algorithm has not converged, iterate the projection and local averaging steps until convergence
+
+## Principal Curves --- Fitting algorithm
+
+```{r iterations-prcurve, results='hide'}
+## f0 is a fudge to get it to display the intial fit, which analogue:::prcurve can't currently show
+f0 <- prcurve(d.s, method = "pca", trace = FALSE, complexity = 2)
+f1 <- prcurve(d.s, method = "pca", trace = TRUE, maxit = 1)
+f4 <- prcurve(d.s, method = "pca", trace = TRUE, maxit = 4)
+f12 <- prcurve(d.s, method = "pca", trace = TRUE, maxit = 12)
+```
+
+```{r iterations-figure, fig.height=6, fig.width=6, out.width="0.55\\linewidth"}
+layout(matrix(1:4, ncol = 2, byrow = TRUE))
+CEX <- 0.8
+op <- par(mar = c(5,4,1,1) + 0.1, cex = CEX, cex.lab = CEX, cex.axis = CEX, cex.sub = CEX)
+prevCol <- rgb(255, 0, 0, 126, maxColorValue = 255)
+plot(f0)
+title(sub = "Initial Curve: PC1")
+plot(f1, cex = CEX)
+lines(f0, segments = FALSE, col = prevCol, lwd = 1)
+lines(f1, segments = FALSE)
+title(sub = "Iteration: 1")
+plot(f4, cex = CEX)
+lines(f0, segments = FALSE, col = prevCol, lwd = 1)
+lines(f1, segments = FALSE, col = prevCol, lwd = 1)
+lines(f4, segments = FALSE)
+title(sub = "Iteration: 4")
+plot(f12, cex = CEX)
+lines(f0, segments = FALSE, col = prevCol, lwd = 1)
+lines(f1, segments = FALSE, col = prevCol, lwd = 1)
+lines(f4, segments = FALSE, col = prevCol, lwd = 1)
+lines(f12, segments = FALSE)
+title(sub = "Iteration: 12. Converged")
+par(op)
+layout(1)
+```
+
+## Principal Curves --- How Smooth?
+
+- The smoother fitted to produce the principal curve is a plug-in element of the algorithm
+- Can use any smoother; here used cubic regression splines
+- Important to not over fit the data by allowing too-complex a curve
+- Several options
+    - Fit PCs with a large span (few df), note error, then reduce span (increase df), note error, etc. Use screeplot to determine optimal span
+    - Fit smoothers to each species using starting curve, allowing (G)CV to choose optimal smoothness for each species. Fit the PC using the median of the smoothness values over all species
+    - Allow the optimal degree of smoothness to be determined for each species individually during each local averaging step
+- Advantage of latter is that those species that vary along the curve more strongly can use more degrees of freedom than those species that only vary lineally
+
+## Principal Curves --- Abernethy Forest
+
+```{r fit-abernethy-prcurve, echo=TRUE}
+aber.pc <- prcurve(abernethy2, trace = FALSE, vary = TRUE, penalty = 1.4)
+aber.pc
+varExpl(aber.pc)
+```
+
+## Principal Curves --- Abernethy Forest
+
+Visualise the fitted curve in PCA space
+
+```{r plot-abernethy-prcurve, fig.height=6, fig.width=6, out.width="0.5\\linewidth"}
+op <- par(mar = c(5,4,2,2) + 0.1)
+plot(aber.pc)
+par(op)
+```
+
+## Principal Curves --- Comparison with PCA and CA
+
+- The PC describes the long, sequential gradient in vegetation in a single variable
+- The PC explains 96% of the variance in the absolute pollen data
+- PCA axis 1 explains 47% and CA axis 1 31\% of the variance in the data
+- We need at least 2 PCA axes to fully capture the single gradient (80.2%)
+- Distance along the curve between adjacent time points is a measure of compositional change
+- Can be expressed as a rate of compositional change --- highlights the periods of rapid compositional change in the Abernethy sequence
+
+# Rate of change analysis
+
+## Rate of change analysis
+
+- Stratigraphic sequences record changes over time
+- How quickly do these changes take place?
+- Rate of change analysis aims to answer this
+- Two general approaches:
+    - change in ordination units
+    - change measured in dissimilarity
+- Could also use
+    - derivatives of splines from principal curve
+	- derivatives of GAM(s) fitted to variables of interest
+
+## Rate of change analysis
+
+- Jacobsen & Grimm (1988) method involves
+    - smooth the data
+    - interpolate to constant time intervals
+    - ordinate smoothed, interpolate data (e.g.~using DCA)
+    - calculate change in ordination/axis score units as measure of RoC
+- Dissimilarity-based approach can be performed two ways
+    - Smooth the data & interpolate, *then* compute dissimilarity between interpolated levels
+    - Compute dissimilarity between adjacent samples directly, then standardise dissimilarity by time interval between samples.
+
+## Rate of change analyis
+
+TODO - needs an example
+
+# Chronological clustering (zonation)
+
+## Chronological clustering
+
+- Chronological (or constrained) clustering commonly used to partition a sediment sequence into 2 or more zones
+- Useful for, *inter alia*
+    - delineating periods of similar species composition
+    - identifying discontinuities or periods of rapid change
+    - to facilitate description of a stratigraphic sequence
+- As with standard cluster analysis, plethora of methods available
+    - Optimal partitioning
+    - Binary (divisive) splitting
+    - Agglomerative partitioning
+- Can be used with any dissimilarity (in theory), but common ones are
+    - Cluster sums of squares (within-group Euclidean distance)
+    - Cluster-wise information statistic
+
+## Chronological clustering
+
+- Optimal partitioning
+    - Identifies optimal locations for splits to form $k$ zones
+    - Non-hierarchical, 3 zone solution \textbf{not} found by splitting one of the zones from the two zone solution
+    - Split placed to minimise within-cluster sum of squares or information content
+- Binary (divisive) splitting
+    - Similar to optimal method but \textit{is} hierarchical
+    - Split sequence into two zones, then split one of the 2 resulting zones, repeat
+    - Zone that is split is the one that would reduce within-group SS or IC the most
+- Agglomerative partitioning
+    - Start with all samples in separate zones and fuse the most similar adjacent samples
+    - Repeat, each time fusing most similar samples or zones
+
+## CONISS
+
+es the long, sequential gradient in vegetation in a single variable
+- The PC explains 96% of the variance in the absolute pollen data
+- PCA axis 1 explains 47% and CA axis 1 31\% of the variance in the data
+- We need at least 2 PCA axes to fully capture the single gradient (80.2%)
+- Distance along the curve between adjacent time points is a measure of compositional change
+- Can be expressed as a rate of compositional change --- highlights the periods of rapid compositional change in the Abernethy sequence
+
+# Rate of change analysis
+
+## Rate of change analysis
+
+- Stratigraphic sequences record changes over time
+- How quickly do these changes take place?
+- Rate of change analysis aims to answer this
+- Two general approaches:
+    - change in ordination units
+    - change measured in dissimilarity
+- Could also use
+    - derivatives of splines from principal curve
+	- derivatives of GAM(s) fitted to variables of interest
+
+## Rate of change analysis
+
+- Jacobsen & Grimm (1988) method involves
+    - smooth the data
+    - interpolate to constant time intervals
+    - ordinate smoothed, interpolate data (e.g.~using DCA)
+    - calculate change in ordination/axis score units as measure of RoC
+- Dissimilarity-based approach can be performed two ways
+    - Smooth the data & interpolate, *then* compute dissimilarity between interpolated levels
+    - Compute dissimilarity between adjacent samples directly, then standardise dissimilarity by time interval between samples.
+
+## Rate of change analyis
+
+TODO - needs an example
+
+# Chronological clustering (zonation)
+
+## Chronological clustering
+
+- Chronological (or constrained) clustering commonly used to partition a sediment sequence into 2 or more zones
+- Useful for, *inter alia*
+    - delineating periods of similar species composition
+    - identifying discontinuities or periods of rapid change
+    - to facilitate description of a stratigraphic sequence
+- As with standard cluster analysis, plethora of methods available
+    - Optimal partitioning
+    - Binary (divisive) splitting
+    - Agglomerative partitioning
+- Can be used with any dissimilarity (in theory), but common ones are
+    - Cluster sums of squares (within-group Euclidean distance)
+    - Cluster-wise information statistic
+
+## Chronological clustering
+
+TODO insert HJBB's figure from chpt 11 DPER5
+
+## CONISS
+
+```{r coniss-1, results="hide", crop.plot=TRUE, fig.width=10, fig.height=5, out.width="0.7\\linewidth"}
+data(RLGH)
+diss <- dist(sqrt(RLGH$spec/100))
+clust <- chclust(diss)
+layout(matrix(1:2, ncol = 2))
+plot(clust, hang=-1, horiz=TRUE, x.rev = TRUE)
+bstick(clust, 10)
+layout(1)
+```
+
+## Binary splitting via MRT
+
+```{r mrt-partykit-abernethy, fig.height=6, fig.width=16, out.width="0.9\\linewidth"}
+aber2 <- chooseTaxa(abernethy2, n.occ = 2, max.abun = 5)
+names(aber2) <- gsub(" ", "", names(aber2))
+names(aber2) <- gsub("-", "", names(aber2))
+frm <- formula(paste0(paste(names(aber2), collapse = " + "), " ~ Age"))
+aber2 <- cbind(aber2, Age = abernethy$Age)
+sptree <- ctree(frm, data = aber2, teststat = "max", minsplit = 2)
+plot(sptree, terminal_panel = node_barplot, tp_args = list(rot = 45, just = c("right")))
+```

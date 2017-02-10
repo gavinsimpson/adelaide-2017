@@ -1,0 +1,768 @@
+\documentclass[10pt,ignorenonframetext,compress, aspectratio=169]{beamer}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath,mathtools}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  %%\defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+  \defaultfontfeatures{Scale=MatchLowercase}
+\fi
+\usetheme[]{metropolis}
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\newif\ifbibliography
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{{#1}}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\ImportTok}[1]{{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{{#1}}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{{#1}}}}
+\newcommand{\BuiltInTok}[1]{{#1}}
+\newcommand{\ExtensionTok}[1]{{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{{#1}}}
+\newcommand{\RegionMarkerTok}[1]{{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{{#1}}}}
+\newcommand{\NormalTok}[1]{{#1}}
+
+% Prevent slide breaks in the middle of a paragraph:
+\widowpenalties 1 10000
+\raggedbottom
+
+\AtBeginPart{
+  \let\insertpartnumber\relax
+  \let\partname\relax
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \let\insertsectionnumber\relax
+    \let\sectionname\relax
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \let\insertsubsectionnumber\relax
+  \let\subsectionname\relax
+  \frame{\subsectionpage}
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+
+%% GLS Added
+% Textcomp for various common symbols
+\usepackage{textcomp}
+
+\usepackage{booktabs}
+
+% Creative Commons Icons
+\usepackage[scale=1]{ccicons}
+
+\newenvironment{centrefig}{\begin{figure}\centering}{\end{figure}}
+\newcommand{\columnsbegin}{\begin{columns}}
+\newcommand{\columnsend}{\end{columns}}
+\newcommand{\centreFigBegin}{\begin{figure}\centering}
+\newcommand{\centreFigEnd}{\end{figure}}
+%%
+
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}, fontsize=\tiny}
+% make console-output smaller:
+\makeatletter
+\def\verbatim{\tiny\@verbatim \frenchspacing\@vobeyspaces \@xverbatim}
+\makeatother
+%\setlength{\parskip}{0pt}
+\setlength{\OuterFrameSep}{-4pt} % was -4pt
+\makeatletter
+\preto{\@verbatim}{\topsep=-10pt \partopsep=-10pt} % were 10pt
+\makeatother
+
+\title{Stratigraphic Data}
+\author{Gavin L. Simpson}
+\date{U Adelaide 2017 • Feb 13--17 2017}
+
+\begin{document}
+\frame{\titlepage}
+
+\section{Introduction}\label{introduction}
+
+\begin{frame}{Introduction}
+
+\end{frame}
+
+\section{Summarising stratigraphic
+data}\label{summarising-stratigraphic-data}
+
+\begin{frame}{Summarising change in stratigraphic data}
+
+\begin{itemize}
+\tightlist
+\item
+  Ordination commonly used to describe patterns of change in
+  multivariate sediment core data
+\item
+  PCA, CA, or even DCA axis 1 and 2 scores commonly used
+\item
+  These methods capture largest patterns of variation in underlying data
+  under assumption of particular model
+\item
+  Can be upset by data sets with a dominant gradient
+\item
+  Can apply all techniques learned earlier in workshop to stratigraphic
+  data
+\item
+  Can we do any better than these methods?
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Principal Curves}
+
+A single long or dominant gradient in an (palaeo)ecological data set
+poses particular problems for PCA and CA --- \alert{horseshoe} or
+\alert{arch}
+
+\begin{center}\includegraphics[width=0.7\linewidth]{02-stratigraphic-data_files/figure-beamer/plot-abernethy-1} \end{center}
+
+Abernethy Forest pollen data (Birks \& Mathewes, 1978)
+
+\end{frame}
+
+\begin{frame}{Principal Curves}
+
+A single long or dominant gradient in an (palaeo)ecological data set
+poses particular problems for PCA and CA --- \alert{horseshoe} or
+\alert{arch}
+
+Trend is broken over two or more axes:
+
+\begin{center}\includegraphics[width=0.7\linewidth]{02-stratigraphic-data_files/figure-beamer/plot-abernethy-pca-1} \end{center}
+
+Can we generalise the PCA solution to be a smooth, non-linear surface?
+
+\end{frame}
+
+\begin{frame}{Principal Curves --- Comparison of estimation techniques}
+
+\begin{itemize}
+\tightlist
+\item
+  In OLS regression, \(y\) is the response and \(x\) is assumed without
+  error
+\item
+  Errors are minimised in \(y\) only --- sums of squared errors
+\item
+  PCA can be seen as a regression of \(y\) on \(x\) where neither \(y\)
+  nor \(x\) plays the role of response or predictor
+\item
+  In PCA, errors in both \(x\) and \(y\) are minimised --- sums of
+  squared orthogonal errors
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Principal Curves --- Comparison of estimation techniques}
+
+\begin{center}\includegraphics[width=0.55\linewidth]{02-stratigraphic-data_files/figure-beamer/comparison-figure-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Principal Curves --- Comparison of estimation techniques}
+
+We can generalise the OLS model to a regression of \(y\) on \(x\) using
+a smooth function of \(x\), \(f(x)\), as the predictor
+
+\(f(x)\) can be estimated using a multitude of techniques
+
+\begin{itemize}
+\tightlist
+\item
+  Loess smoother
+\item
+  Local-linear smooths
+\item
+  Smoothing splines
+\item
+  Regression splines
+\item
+  \ldots{}
+\end{itemize}
+
+\(f(x)\) is usually estimated from the data, with smoothness determined
+by minimising a penalised sums of squares criterion under CV (or GCV):
+\textbf{Errors are still assessed in \(y\) only}
+
+\end{frame}
+
+\begin{frame}{Principal Curves --- Comparison of estimation techniques}
+
+\begin{center}\includegraphics[width=0.55\linewidth]{02-stratigraphic-data_files/figure-beamer/comparison-figure-2-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Principal Curves --- Comparison of estimation techniques}
+
+\begin{itemize}
+\tightlist
+\item
+  Ideally we would generalise PCA to find non-linear manifolds in the
+  same way as we went from OLS to semi-parametric regression using
+  smoothers
+\item
+  This is exactly what is done in the method of \alert{principal curves}
+\item
+  Our aim is to estimate as the principal curve, a 1-d manifold that
+  passes through the data in high-dimensions that minimises the sum of
+  squared orthogonal errors
+\item
+  We bend the principal component (for example) towards the data to
+  achieve a better fit to the data
+\item
+  How far and how flexibly we can bend the curve towards the data is
+  determined from the data to minimise a penalized criterion during
+  fitting
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Principal Curves --- Comparison of estimation techniques}
+
+\begin{center}\includegraphics[width=0.55\linewidth]{02-stratigraphic-data_files/figure-beamer/comparison-figure-3-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Principal Curves --- Fitting algorithm}
+
+\begin{itemize}
+\tightlist
+\item
+  Start with any smooth curve --- the first or second PCA or CA axis
+\item
+  Begin the \alert{Projection Step}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    All objects are projected onto a point on the smooth curve that they
+    are closest too
+  \item
+    The distances of the points along the curve that each object
+    projects onto are determined
+  \end{itemize}
+\item
+  Begin the \alert{Local Averaging Step}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Bend the current smooth curve towards the data so that the sum of
+    squared orthogonal distances is reduced
+  \item
+    Taking each species (variable) in turn as the response, fit a
+    smoother to predict the response using distance along the current
+    curve as the predictor variable
+  \item
+    Repeat for all species (variables) and collect the fitted values of
+    the individual smoothers into a matrix that described the new
+    location of the curve in high dimensions
+  \end{itemize}
+\item
+  If the new curve is sufficiently similar to the current curve, declare
+  convergence
+\item
+  If algorithm has not converged, iterate the projection and local
+  averaging steps until convergence
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Principal Curves --- Fitting algorithm}
+
+\begin{center}\includegraphics[width=0.55\linewidth]{02-stratigraphic-data_files/figure-beamer/iterations-figure-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Principal Curves --- How Smooth?}
+
+\begin{itemize}
+\tightlist
+\item
+  The smoother fitted to produce the principal curve is a plug-in
+  element of the algorithm
+\item
+  Can use any smoother; here used cubic regression splines
+\item
+  Important to not over fit the data by allowing too-complex a curve
+\item
+  Several options
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Fit PCs with a large span (few df), note error, then reduce span
+    (increase df), note error, etc. Use screeplot to determine optimal
+    span
+  \item
+    Fit smoothers to each species using starting curve, allowing (G)CV
+    to choose optimal smoothness for each species. Fit the PC using the
+    median of the smoothness values over all species
+  \item
+    Allow the optimal degree of smoothness to be determined for each
+    species individually during each local averaging step
+  \end{itemize}
+\item
+  Advantage of latter is that those species that vary along the curve
+  more strongly can use more degrees of freedom than those species that
+  only vary lineally
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Principal Curves --- Abernethy Forest}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{aber.pc <-}\StringTok{ }\KeywordTok{prcurve}\NormalTok{(abernethy2, }\DataTypeTok{trace =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{vary =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{penalty =} \FloatTok{1.4}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{aber.pc}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+    Principal Curve Fitting
+
+Call: prcurve(X = abernethy2, vary = TRUE, trace = FALSE, penalty
+= 1.4)
+
+Algorithm converged after 6 iterations
+
+           SumSq Proportion
+Total     103234      1.000
+Explained  98864      0.958
+Residual    4370      0.042
+
+Fitted curve uses 218.3391 degrees of freedom.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{varExpl}\NormalTok{(aber.pc)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+      PrC 
+0.9576693 
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}{Principal Curves --- Abernethy Forest}
+
+Visualise the fitted curve in PCA space
+
+\begin{center}\includegraphics[width=0.5\linewidth]{02-stratigraphic-data_files/figure-beamer/plot-abernethy-prcurve-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Principal Curves --- Comparison with PCA and CA}
+
+\begin{itemize}
+\tightlist
+\item
+  The PC describes the long, sequential gradient in vegetation in a
+  single variable
+\item
+  The PC explains 96\% of the variance in the absolute pollen data
+\item
+  PCA axis 1 explains 47\% and CA axis 1 31\% of the variance in the
+  data
+\item
+  We need at least 2 PCA axes to fully capture the single gradient
+  (80.2\%)
+\item
+  Distance along the curve between adjacent time points is a measure of
+  compositional change
+\item
+  Can be expressed as a rate of compositional change --- highlights the
+  periods of rapid compositional change in the Abernethy sequence
+\end{itemize}
+
+\end{frame}
+
+\section{Rate of change analysis}\label{rate-of-change-analysis}
+
+\begin{frame}{Rate of change analysis}
+
+\begin{itemize}
+\tightlist
+\item
+  Stratigraphic sequences record changes over time
+\item
+  How quickly do these changes take place?
+\item
+  Rate of change analysis aims to answer this
+\item
+  Two general approaches:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    change in ordination units
+  \item
+    change measured in dissimilarity
+  \end{itemize}
+\item
+  Could also use
+
+  \begin{itemize}
+  \tightlist
+  \item
+    derivatives of splines from principal curve
+  \item
+    derivatives of GAM(s) fitted to variables of interest
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Rate of change analysis}
+
+\begin{itemize}
+\tightlist
+\item
+  Jacobsen \& Grimm (1988) method involves
+
+  \begin{itemize}
+  \tightlist
+  \item
+    smooth the data
+  \item
+    interpolate to constant time intervals
+  \item
+    ordinate smoothed, interpolate data (e.g.\textasciitilde{}using DCA)
+  \item
+    calculate change in ordination/axis score units as measure of RoC
+  \end{itemize}
+\item
+  Dissimilarity-based approach can be performed two ways
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Smooth the data \& interpolate, \emph{then} compute dissimilarity
+    between interpolated levels
+  \item
+    Compute dissimilarity between adjacent samples directly, then
+    standardise dissimilarity by time interval between samples.
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Rate of change analyis}
+
+TODO - needs an example
+
+\end{frame}
+
+\section{Chronological clustering
+(zonation)}\label{chronological-clustering-zonation}
+
+\begin{frame}{Chronological clustering}
+
+\begin{itemize}
+\tightlist
+\item
+  Chronological (or constrained) clustering commonly used to partition a
+  sediment sequence into 2 or more zones
+\item
+  Useful for, \emph{inter alia}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    delineating periods of similar species composition
+  \item
+    identifying discontinuities or periods of rapid change
+  \item
+    to facilitate description of a stratigraphic sequence
+  \end{itemize}
+\item
+  As with standard cluster analysis, plethora of methods available
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Optimal partitioning
+  \item
+    Binary (divisive) splitting
+  \item
+    Agglomerative partitioning
+  \end{itemize}
+\item
+  Can be used with any dissimilarity (in theory), but common ones are
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Cluster sums of squares (within-group Euclidean distance)
+  \item
+    Cluster-wise information statistic
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Chronological clustering}
+
+\begin{itemize}
+\tightlist
+\item
+  Optimal partitioning
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Identifies optimal locations for splits to form \(k\) zones
+  \item
+    Non-hierarchical, 3 zone solution \textbf{not} found by splitting
+    one of the zones from the two zone solution
+  \item
+    Split placed to minimise within-cluster sum of squares or
+    information content
+  \end{itemize}
+\item
+  Binary (divisive) splitting
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Similar to optimal method but \textit{is} hierarchical
+  \item
+    Split sequence into two zones, then split one of the 2 resulting
+    zones, repeat
+  \item
+    Zone that is split is the one that would reduce within-group SS or
+    IC the most
+  \end{itemize}
+\item
+  Agglomerative partitioning
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Start with all samples in separate zones and fuse the most similar
+    adjacent samples
+  \item
+    Repeat, each time fusing most similar samples or zones
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{CONISS}
+
+es the long, sequential gradient in vegetation in a single variable -
+The PC explains 96\% of the variance in the absolute pollen data - PCA
+axis 1 explains 47\% and CA axis 1 31\% of the variance in the data - We
+need at least 2 PCA axes to fully capture the single gradient (80.2\%) -
+Distance along the curve between adjacent time points is a measure of
+compositional change - Can be expressed as a rate of compositional
+change --- highlights the periods of rapid compositional change in the
+Abernethy sequence
+
+\end{frame}
+
+\section{Rate of change analysis}\label{rate-of-change-analysis-3}
+
+\begin{frame}{Rate of change analysis}
+
+\begin{itemize}
+\tightlist
+\item
+  Stratigraphic sequences record changes over time
+\item
+  How quickly do these changes take place?
+\item
+  Rate of change analysis aims to answer this
+\item
+  Two general approaches:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    change in ordination units
+  \item
+    change measured in dissimilarity
+  \end{itemize}
+\item
+  Could also use
+
+  \begin{itemize}
+  \tightlist
+  \item
+    derivatives of splines from principal curve
+  \item
+    derivatives of GAM(s) fitted to variables of interest
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Rate of change analysis}
+
+\begin{itemize}
+\tightlist
+\item
+  Jacobsen \& Grimm (1988) method involves
+
+  \begin{itemize}
+  \tightlist
+  \item
+    smooth the data
+  \item
+    interpolate to constant time intervals
+  \item
+    ordinate smoothed, interpolate data (e.g.\textasciitilde{}using DCA)
+  \item
+    calculate change in ordination/axis score units as measure of RoC
+  \end{itemize}
+\item
+  Dissimilarity-based approach can be performed two ways
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Smooth the data \& interpolate, \emph{then} compute dissimilarity
+    between interpolated levels
+  \item
+    Compute dissimilarity between adjacent samples directly, then
+    standardise dissimilarity by time interval between samples.
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Rate of change analyis}
+
+TODO - needs an example
+
+\end{frame}
+
+\section{Chronological clustering
+(zonation)}\label{chronological-clustering-zonation-1}
+
+\begin{frame}{Chronological clustering}
+
+\begin{itemize}
+\tightlist
+\item
+  Chronological (or constrained) clustering commonly used to partition a
+  sediment sequence into 2 or more zones
+\item
+  Useful for, \emph{inter alia}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    delineating periods of similar species composition
+  \item
+    identifying discontinuities or periods of rapid change
+  \item
+    to facilitate description of a stratigraphic sequence
+  \end{itemize}
+\item
+  As with standard cluster analysis, plethora of methods available
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Optimal partitioning
+  \item
+    Binary (divisive) splitting
+  \item
+    Agglomerative partitioning
+  \end{itemize}
+\item
+  Can be used with any dissimilarity (in theory), but common ones are
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Cluster sums of squares (within-group Euclidean distance)
+  \item
+    Cluster-wise information statistic
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Chronological clustering}
+
+TODO insert HJBB's figure from chpt 11 DPER5
+
+\end{frame}
+
+\begin{frame}{CONISS}
+
+\begin{center}\includegraphics[width=0.7\linewidth]{02-stratigraphic-data_files/figure-beamer/coniss-1-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Binary splitting via MRT}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{02-stratigraphic-data_files/figure-beamer/mrt-partykit-abernethy-1} \end{center}
+
+\end{frame}
+
+\end{document}
