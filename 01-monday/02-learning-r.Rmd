@@ -1,0 +1,31 @@
+---
+title: "Learning R"
+author: Gavin L. Simpson
+date: February, 2017
+fontsize: 10pt
+classoption: "compress, aspectratio=169"
+output:
+  beamer_presentation:
+    theme: metropolis
+    keep_tex: true
+    highlight: tango
+    slide_level: 2
+    template: ~/work/teaching/adelaide/feb-2017/slide-template-feb-2017.tex
+    fig_width: 6
+    fig_height: 3.5
+    fig_crop: false
+    pandoc_args: [
+      "--latex-engine=xelatex"
+    ]
+---
+
+
+## Re-use
+
+Copyright © (2015) Gavin L. Simpson Some Rights Reserved
+
+Unless indicated otherwise, this slide deck is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
+
+\begin{center}
+  \ccby
+\end{center}

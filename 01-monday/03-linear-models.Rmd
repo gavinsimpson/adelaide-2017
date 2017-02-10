@@ -1,0 +1,1186 @@
+---
+title: "Linear models"
+author: Gavin L. Simpson
+date: February, 2017
+fontsize: 10pt
+classoption: "compress, aspectratio=169"
+output:
+  beamer_presentation:
+    theme: metropolis
+    keep_tex: true
+    highlight: tango
+    slide_level: 2
+    template: ~/work/teaching/adelaide/feb-2017/slide-template-feb-2017.tex
+    fig_width: 6
+    fig_height: 3.5
+    fig_crop: false
+    pandoc_args: [
+      "--latex-engine=xelatex"
+    ]
+---
+
+```{r setup-options, echo = FALSE, results = "hide", message = FALSE}
+knitr::opts_chunk$set(comment=NA, fig.align = "center", out.width = "0.7\\linewidth",
+                      echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE)
+knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
+```
+
+```{r packages, echo = FALSE, results = "hide"}
+library("ggplot2")
+library("gridExtra")
+library("ISwR")
+library("leaps")
+library("effects")
+```
+
+## Introduction
+
+In this session we'll start to think about *modelling* the relationships between two or more variables
+
+By modelling the relationship we are suggesting a means by which the data we collected might have originated
+
+We won't be able to speak to *causation* in many cases because we have data collected as part of observational studies
+
+But we can test hypotheses about the relationships between variables
+
+# Linear Regression
+
+## Linear regression
+
+\alert{Linear regression} can be thought of as an extension of the ideas behind \alert{correlations}
+
+The linear regression model is a far more powerful statistical tool, however
+
+Correlations tell us about the strength of the *linear relationship* between two variables $x$ and $y$
+
+A linear regression provides a model, or equation, for the line of best fit placed through the data
+
+Further, in the linear regression the roles played by $x$ and $y$ are different; we say the values of $y$ depend, to some degree, on the values of $x$ measured on the same entities
+
+Hence $x$ plays the role of the \alert{predictor} variable and $y$ is the \alert{response}
+
+## Linear regression
+
+\alert{Simple linear regression} is a statistical model that assumes a linear relationship between a continuous response variable $y$ and one or more, usually continuous, predictor variables, $X = x_1, \ldots, x_n$
+
+Three major purposes of such models
+
+- to describe the linear relationship between $y$ and $X$
+- to determine how much variation (uncertainty) in $y$ can be explained by the relationship with $X$
+- to predict new values of $y$ from new values of $X$
+
+## Linear regression
+
+In this section we'll consider the simplest case of a single predictor $x$ & its relationship with $y$
+
+A suitable model for this linear relationship is
+
+$$y_i = \underbracket{\beta_0 + \beta_1x_i}_\text{systematic} + \underbracket{\varepsilon_i}_\text{random}$$
+
+We have two knowns, $x$ & $y$, & three unknowns, $\beta_0$, $\beta_1$, & $\varepsilon$, although we only seek values for the first two
+
+The $\beta_j$ are the model \alert{parameters}
+
+$\beta_0$ is the intercept, the expected value of $y$ when $x$ is 0
+
+$\beta_1$ is often called the slope, it measures the rate of change in $y$ for a unit change in $x$
+
+## Schematic of the linear regression line
+
+```{r linear-regression-schematic, fig.width = 5.5, fig.height = 4, out.width = "0.7\\textwidth"}
+op <- par(mar = c(5,4,0,0) + 0.1)
+b0 <- 1 ## intercept
+b1 <- 0.4 ## slope
+X <- seq(-1, 4, by = 0.1)
+Y <- seq(0, 3, length = length(X))
+yfun <- function(x, b0, b1) {
+   b0 + (b1 * x)
+}
+plot(Y ~ X, asp = 1, type = "n", bty = "n")
+u <- par("usr")
+lines(x = c(0,0), y = c(-1,1), col = "blue", lwd = 2)
+lines(x = c(0,u[1]), y = c(1,1), col = "blue", lwd = 2,
+      lty = "dashed")
+lines(x = c(2,3,3), y = yfun(c(2,2,3), b0, b1),
+      col = "red", lwd = 2)
+abline(b0, b1, col = "forestgreen", lwd = 3)
+text(x = 2.5, y = yfun(2, b0, b1), labels = "1",
+     pos = 1, cex = 1.5)
+text(x = 3.2, y = yfun(2.5, b0, b1),
+     labels = expression(beta[1]), cex = 1.5)
+text(x = -0.6, y = yfun(-0.6, b0, b1)+0.5,
+     labels = expression(beta[0]), cex = 1.5)
+## title(main = "E( Y | X = x )")
+box()
+par(op)
+```
+
+## Linear regression
+
+We estimate the two unknown parameters in the model using a procedure known as \alert{least squares}, where we minimise the \alert{Residual Sum of Squares} $\mathrm{RSS} = \sum_{i=1}^n \varepsilon_i$
+
+```{r linear-reg-least-squares}
+set.seed(1234)
+op <- par(mar = c(5,4,0,0) + 0.1)
+x <- 1:5
+y <- 3 + 0.8*x + rnorm(length(x))
+y.lm <- lm(y ~ x)
+y.fitted <- 3 + 0.8*x
+y.fitted <- fitted(y.lm)
+plot(y ~ x, cex = 1.2, pch = 19)
+segments(x, y.fitted, x, y, lty = "solid", col = "blue", lwd = 2)
+lines(y.fitted ~ x, pch = 16, col = "red", lwd = 2,
+      type = "b", cex = 1.2)
+text(x[4], y[4], labels = expression(y[i]), pos = 1, cex = 1.5)
+text(x[4], y.fitted[4], labels = expression(hat(y[i])),
+     pos = 3, cex = 1.5)
+text(x[4]+0.1, y[4]+1, pos = 4, cex = 1.5,
+     labels = expression(epsilon[i] == y[i] - hat(y[i])))
+x.pred = 2.5
+y.pred <- 3 + 0.8*x.pred
+y.pred <- predict(y.lm, newdata = data.frame(x = x.pred))
+segments(x.pred, 0, x.pred, y.pred, lwd = 1, lty = "solid")
+segments(x.pred, y.pred, 0, y.pred, lwd = 1, lty = "solid")
+points(x.pred, y.pred, pch = 17, col = "forestgreen", cex = 1.5)
+par(op)
+```
+
+## Linear regression
+
+Estimates of parameters ($\beta_j$) are for the *population* based on the fit to our *sample* of data
+
+```{r true-versus-estimate-line}
+set.seed(45)
+op <- par(mar = c(5,4,0,0) + 0.1)
+X <- rnorm(20, mean = 2, sd = 1.5)
+Y <- 0.7 + (0.8 * X) + rnorm(20)
+m <- lm(Y ~ X)
+plot(Y ~ X, ylim = c(0,9))
+## True mean function
+abline(0.7, 0.8, col = "forestgreen", lty = "dashed", lwd = 2)
+abline(m, col = "red", lwd = 2)
+segments(X, Y, X, fitted(m))
+legend("topleft", col = c("forestgreen","red"),
+       legend = c("True Mean Function","Estimated Mean Function"),
+       lwd = 2, lty = c("dashed","solid"), bty = "n")
+b0 <- signif(coef(m)[1], 4)
+b1 <- signif(coef(m)[2], 4)
+## title(main = bquote(beta[0] == 0.7 ~~ beta[1] == 0.8 ~~
+##       hat(beta)[0] == .(b0) ~~ hat(beta)[1] == .(b1)))
+par(op)
+```
+
+## Linear regression
+
+```{r example-coefs}
+coefs <- coef(m)
+ses <- sqrt(diag(vcov(m)))
+crit <- qt(0.975, df = df.residual(m))
+upr <- coefs + (crit * ses)
+lwr <- coefs - (crit * ses)
+```
+
+Data were 20 observations generated from the following model
+
+$$y_i = 0.7 + 0.8x_i + \varepsilon_i \;\;\;\; \varepsilon_i \sim N(\mu = 0, \sigma = 1)$$
+
+Fitted model estimates are: $\hat{\beta}_0$ = `r round(coefs[1], 3)` and $\hat{\beta}_1$ = `r round(coefs[2], 3)`
+
+The parameters are means & the uncertainty in the estimated values is captured by their standard errors
+
+Confidence intervals for the estimates:
+
+- $\beta_0 \pm t_{0.975} \mathrm{SE}_{\beta_0}$ = `r round(c(lwr[1], upr[1]), 3)`
+- $\beta_1 \pm t_{0.975} \mathrm{SE}_{\beta_1}$ = `r round(c(lwr[2], upr[2]), 3)`
+
+## Ventricular shortening & Diabetes
+
+Example data are from a study of the effects of blood glucose levels on heart function in diabetes patients
+
+```{r thuesen-example}
+data(thuesen)
+op <- par(mar = c(5,4,0,0.2) + 0.1)
+plot(short.velocity ~ blood.glucose, data = thuesen, pch = 19, col = "navyblue")
+sv.mod <- lm(short.velocity ~ blood.glucose, data = thuesen)
+abline(sv.mod, col = "red", lwd = 2)
+par(op)
+```
+
+## Ventricular shortening & Diabetes: Model summary
+
+\scriptsize
+```{r, results = "show"}
+summary(sv.mod)
+```
+\normalsize
+
+## Ventricular shortening & Diabetes: Model summary
+
+\scriptsize
+```{r, results = "show"}
+printCoefmat(coef(summary(sv.mod)), digits = 4)
+```
+\normalsize
+
+- `Estimate` column contains the estimated parameters
+- The intercept is `r round(coef(sv.mod)[1], 3)`, the ventricular shortening velocity (VSV) at a blood glucose level of 0 mmol/L
+- For every increase of 1 mmol/L glucose in blood, VSV *increases* by `r round(coef(sv.mod)[2], 3)`
+- Each row in the table is a statistical test of a parameter, with a null hypothesis $\beta_j$ = 0
+- $t$ is the \alert{test statistic} for the test $t_j = \frac{\beta_j - 0}{\mathrm{SE}_{\beta_j}}$
+- *What is the probability of observing a value as extreme as $\hat{\beta}_j$ if $\beta_j$ = 0?*
+- *Is the observed coefficient expected if there was no relationship between $x$ and $y$*
+
+## T tests
+
+$n$ - 2 degrees of freedom = `r df.residual(sv.mod)`
+
+If $t$ statistic lies in either rejection regions, reject H~0~ at $\alpha$ = 0.05 level
+
+```{r rejection-regions-plot}
+x <- seq(-5, 5, by = 0.1)
+rdf <- df.residual(sv.mod)
+dens <- dt(x, df = rdf)
+crit.t <- qt(0.025, rdf)
+op <- par(mar = c(3,4,0.2,0.2) + 0.1)
+plot(x, dens, type = "l", ylab = "Probability density", xlab = "")
+abline(h = 0, col = "grey")
+take <- which(x <= crit.t)
+col.regions <- "darkgrey"
+polygon(x = c(x[take], crit.t, crit.t),
+        y = c(dens[take], dt(crit.t, df = rdf), 0),
+        col = col.regions, border = col.regions)
+take <- which(x >= -crit.t)
+polygon(x = c(-crit.t, -crit.t, x[take]),
+        y = c(0, dt(-crit.t, df = rdf), dens[take]),
+        col = col.regions, border = col.regions)
+lines(x, dens, type = "l")
+abline(v = c(crit.t, -crit.t), col = "red")
+par(op)
+```
+
+## ANOVA table
+
+Linear regression can be seen as a partitioning of variance in the data in amounts explained by variables in the model & unexplained variance
+
+\alert{Mean squares} can only be positive; even a variable unrelated to response will explain some variance
+
+Compare the ratio of Mean square (the SSq normalised by degrees of freedom) with an *F* distribution with 1 & 21 degrees of freedom
+
+\scriptsize
+```{r anova-shortening}
+print(anova(sv.mod), digits = 3)
+```
+\normalsize
+
+## ANOVA table
+
+$F$ is the $F$-ratio, the ratio of the regression and residual variances
+
+$$F = \frac{\sum\limits^n_{i=1}(\hat{y}_i - \bar{y})^2 / p}{\sum\limits^n_{i=1}(y_i - \hat{y}_i)^2 / [n-(p+1)]} = \frac{\mathrm{MS_{reg}}}{\mathrm{MS_{resid}}}$$
+
+Probability of $F$ greater than or equal to observed from $F$-distribution with $p$ and $n - (p + 1)$ degrees of freedom
+
+## ANOVA table
+
+Large values of *F* are evidence against the null hypothesis of no relationship
+
+Reference distribution is $\mathsf{F_{1,21}}$; all rejection region is in upper tail
+
+```{r F-rejection-regions-plot, fig.width = 10, out.width = "\\textwidth"}
+layout(matrix(1:2, ncol = 2))
+## plot 1
+x <- seq(0, 15, by = 0.1)
+rdf <- df.residual(sv.mod)
+dens <- df(x, df1 = 1, df2 = rdf)
+crit.f <- qf(0.95, df1 = 1, df2 = rdf)
+op <- par(mar = c(4,4,0.3,0.2) + 0.1)
+plot(x, dens, type = "l", ylab = "Probability density", xlab = "F", lwd = 2)
+abline(h = 0, col = "grey")
+col.regions <- "darkgrey"
+take <- which(x >= crit.f)
+polygon(x = c(crit.f, crit.f, x[take]),
+        y = c(0, df(crit.f, df1 = 1, df2 = rdf), dens[take]),
+        col = col.regions, border = col.regions)
+lines(x, dens, type = "l")
+abline(v = crit.f, col = "red", lwd = 2)
+## plot 2
+x <- seq(4, 20, by = 0.1)
+rdf <- df.residual(sv.mod)
+dens <- df(x, df1 = 1, df2 = rdf)
+crit.f <- qf(0.95, df1 = 1, df2 = rdf)
+plot(x, dens, type = "l", ylab = "Probability density", xlab = "F", lwd = 2, xlim = c(4,15))
+abline(h = 0, col = "grey")
+col.regions <- "darkgrey"
+take <- which(x >= crit.f)
+polygon(x = c(crit.f, crit.f, x[take], tail(x, 1)),
+        y = c(0, df(crit.f, df1 = 1, df2 = rdf), dens[take], 0),
+        col = col.regions, border = col.regions)
+lines(x, dens, type = "l")
+abline(v = crit.f, col = "red", lwd = 2)
+par(op)
+layout(1)
+```
+
+## R-Squared
+
+$R^2$ is a commonly reported measure of variance explained by the regression
+
+$R^2$ is the \alert{coefficient of determination}, the ratio of the variance explained to the total variance
+
+$$R^2 = \frac{\mathrm{SS_{reg}}}{\mathrm{SS_{reg} + RSS}} = 1 - \frac{\mathrm{SS_{resid}}}{\mathrm{SS_{total}}}$$
+
+One problem with $R^2$ is that increases as you add predictors to the model even if those predictors have no explanatory power
+
+## Adjusted R-squared
+
+Adjusted $R^2$ takes into account number of predictors in the model
+
+$$R^2_{\mathrm{adj}} = 1 - \frac{\mathrm{SS_{resid}} / [n - (p + 1)]}{\mathrm{SS_{total}} / (n-1)}$$
+
+Neither measure is a particularly *useful* summary; don't indicate how the regression model will predict new observations
+
+The \alert{effect size}, the size of the model coefficients, is far more useful
+
+# Assumptions of the linear model
+
+## Assumptions of the linear model
+
+To fit the model, we don't need to make any assumptions, beyond linearity
+
+\alert{Statistical inference} on the estimated parameters depends on a number of assumptions
+
+1. The linear model correctly describes the functional relationship between $y$ and $x$
+2. The $x_i$ are measured without error
+3. For any given value of $x_i$, the sampled $y_i$ values are \alert{independent} with normally distributed errors
+4. Variances are constant along the regression line/model
+
+## Assumptions of the linear model I
+
+**The linear model correctly describes the functional relationship between $y$ and $x$**
+
+Effectively, this assumption is about whether the model we've fitted represents the true underlying relationship between $x$ and $y$
+
+*Is the relationship well approximated via a straight line?*
+
+*Would a curved line (\alert{polynomial}) be better?*
+
+If we have the model form wrong, our model will be \alert{biased}; fitted values different appreciably from the true values
+
+If violated the estimate of predictor variances ($\sigma^2$) will be inflated
+
+Incorrect model specification can show itself as patterns in the residuals
+
+## Assumptions of the linear model I
+
+```{r resid-vs-fitted}
+df <- data.frame(Residuals = resid(sv.mod), Fitted = fitted(sv.mod))
+ggplot(df, aes(x = Fitted, y = Residuals)) + geom_point() + geom_smooth(se = FALSE)
+```
+
+## Assumptions of the linear model II
+
+**$x_i$ are measured without error**
+
+This assumption states that we know the values of the predictor variable(s) $x$ *exactly*
+
+Allows us to isolate the error component ($\varepsilon_i$) as random variation in $y$
+
+Estimates $\hat{\beta}_j$ will be biased if there is error in $x$
+
+This is often ignored in data analysis, but modern, advanced approaches can account for this extra source of variation
+
+## Assumptions of the linear model III
+
+**For any $x_i$, the sampled $y_i$ are \alert{independent} with normally distributed errors**
+
+**Variances are constant along the regression line/model**
+
+These 2 assumptions relate to distribution of the residuals ($\varepsilon_i$), or, *conditional upon* the values of $x$, of $y$
+
+$\varepsilon_i$ are assumed to follow a \alert{Normal} distribution with zero mean and constant variance
+
+Independence and normality of errors allows us to use parametric theory for confidence intervals and hypothesis tests on the $F$-ratio.
+
+Allows a single constant variance $\sigma^2$ for the variance of the regression line/model
+
+Each residual is drawn from the same distribution; Normal with mean zero, variance $\hat{\sigma}^2$
+
+Non-constant variances can be recognised through plots of residuals (among others); residuals get wider as the values of $y$ increase
+
+## Assumptions of the linear model III
+
+```{r svmod-qqplot, fig.width = 8, out.width = "0.9\\textwidth"}
+p1 <- ggplot(df, aes(sample = Residuals)) +
+    stat_qq() +
+        xlab("Theoretical Quantiles") +
+            ylab("Standardized Residuals")
+p2 <- ggplot(df, aes(x = Residuals)) + geom_line(stat = "density")
+grid.arrange(p1, p2, ncol = 2)
+```
+
+## Assumptions of the linear model III
+
+```{r svmod-scale-location-plot, fig.width = 8, out.width = "0.9\\textwidth"}
+df <- transform(df, SL = sqrt(abs(rstandard(sv.mod))))
+ggplot(df, aes(x = Fitted, y = SL)) + geom_point() + geom_smooth(se = FALSE) +
+    ylab(expression(sqrt(abs(standardised ~ residuals))))
+```
+
+## Assumptions of the linear model IV
+
+\alert{Independence} is a key assumption; knowing the value of one residual tells use nothing about another
+
+Data that have spatial or temporal components, or represent repeated observations on the same set of individuals are commonly encountered & violate this assumption
+
+# Outliers, Leverage & Influence
+
+## Outliers, Leverage & Influence
+
+An \alert{outlier} is an observation which is inconsistent with the rest of a sample
+
+An observation can be an outlier due to the response variable(s) or one or more of the predictor variables having values outside their expected limits
+
+An outlier may also result from: incorrect measurement, incorrect data entry, transcription error, recording error
+
+Two main concepts
+
+- \alert{Leverage}: Potential for an outlier to be influential
+- \alert{Influence}: Observation is influential if its deletion substantially changes the results
+
+## Outliers, Leverage & Influence
+
+\alert{Leverage} measures the degree to which individual observations affect the the fitted value for that observation
+
+Leverage values are also known as \alert{hat values}, as they are the values on the diagonal of the *hat matrix*, which projects the observed values onto the fitted values of the model
+
+Hat matrix is so called because it puts a \alert{hat on} $\mathbf{Y}$: $\mathbf{\hat{Y} = HY}$
+
+Leverage ranges from 1/n to 1
+
+Observation has high leverage if its hat value is 2--3 times the average hat value: $h = (p+1)/n$, where $p+1$ is number of coefficients (inc. the intercept)
+
+## Outliers, Leverage & Influence
+
+```{r svmod-hatvalues-plot}
+sv.fort <- fortify(sv.mod)
+sv.fort <- transform(sv.fort, Observation = seq_along(.hat))
+ggplot(sv.fort, aes(x = Observation, y = .hat)) +
+    geom_bar(stat = "identity") +
+    geom_hline(aes(yintercept = 2 / nrow(sv.fort))) +
+    ylab("Hat values")
+```
+
+## Outliers, Leverage & Influence
+
+An observation that combines *outlyingness* with high leverage exerts an \alert{influence} on the estimated regression coefficients
+
+If an influential observation is deleted from the model, the *estimated coefficients change substantially*
+
+$\mathsf{dfbeta}_{ij}$ assesses the impact on the $j$th coefficient of deleting the $i$th observation
+
+$$\mathsf{dfbeta}_{ij} = \beta_{j(-i)} - \beta_j$$
+
+The $\mathsf{dfbeta}_{ij}$ are expressed in the metric of the coefficient
+
+A standardised version, $\mathsf{dfbetas}_{ij}$ divides $\mathsf{dfbeta}_{ij}$ by the standard error of $\beta_j$
+
+Influential observations have $\mathsf{dfbetas}_{ij} \geq 2 / \sqrt{n}$
+
+## Outliers, Leverage & Influence: Cook's Distance
+
+One problem with $\mathsf{dfbetas}_{ij}$ is that there are so many numbers!
+
+One for each observation for every $\beta_j$: $n \times (p+1)$
+
+\alert{Cook's Distance}, $D_i$, is a scale invariant measure of distance between $\beta_j$ and $\beta_{j(-i)}$
+
+$$D_i = \frac{e^2_i}{s^2(p+1)} \times \frac{h_i}{1-h_i}$$
+
+where $e_i^2$ is the squared residual & $h_i$ is the hat value for $x_i$; $s^2$ is the variance of the residuals
+
+The first fraction is a measure of \alert{outlyingness}, the second of \alert{leverage}
+
+$D_i \geq 4 / (n - p - 1)$ suggested as a cutoff for high values of $D_i$
+
+## Outliers, Leverage & Influence: Cook's Distance
+
+```{r svmod-cooks-distance-plot}
+ggplot(sv.fort, aes(x = Observation, y = .cooksd)) +
+    geom_bar(stat = "identity") +
+    geom_hline(aes(yintercept = 4 / (nrow(sv.fort) - 2))) +
+    ylab("Cook's Distance")
+```
+
+## Outliers, Leverage & Influence: Example
+
+```{r leverge-influence-example, fig.height = 6, fig.width = 6, out.width = "0.5\\textwidth"}
+n.draw <- 100
+beta1 <- 4
+set.seed(1234)
+x <- runif(n.draw)
+y <- runif(1) + (beta1 * x) + rnorm(n.draw)
+Xmax <- max(x)
+Ymax <- max(y)
+x1 <- c(x, 2*Xmax)
+y1 <- runif(1) + (beta1 * x1) + rnorm(n.draw+1)
+Ymin <- min(y1)
+x2 <- x1
+y2 <- c(y1[-length(y1)], Ymin * 3)
+mod <- lm(y1 ~ x1)
+mod2 <- lm(y2 ~ x2)
+layout(matrix(1:4, ncol = 2, byrow = TRUE))
+op <- par(mar = c(5,4,3,1) + 0.1)
+plot(y1 ~ x1, col = c(rep("black", n.draw), "red"),
+     pch = c(rep(1, n.draw), 2),
+     main = paste("Intercept:", round(coef(mod)[1], 3),
+       "\nSlope:", round(coef(mod)[2], 3)))
+abline(mod, col = "red", lwd = 2)
+abline(lm(y1 ~ x1, subset = seq(n.draw + 1) <= n.draw),
+       lty = "dashed", col = "blue", lwd = 2)
+plot(y2 ~ x2, col = c(rep("black", n.draw), "red"),
+     pch = c(rep(1, n.draw), 2),
+     main = paste("Intercept:", round(coef(mod2)[1], 3),
+       "\nSlope:", round(coef(mod2)[2], 3)))
+abline(lm(y2 ~ x2), col = "red", lwd = 2)
+abline(lm(y2 ~ x2, subset = seq(n.draw + 1) <= n.draw),
+       lty = "dashed", col = "blue", lwd = 2)
+plot(cooks.distance(mod), main = "Cook's Distance",
+     col = c(rep("black", n.draw), "red"),
+     pch = c(rep(1, n.draw), 2))
+abline(h = 4 / ((n.draw+1) - 1 - 1))
+plot(cooks.distance(mod2), main = "Cook's Distance",
+     col = c(rep("black", n.draw), "red"),
+     pch = c(rep(1, n.draw), 2))
+abline(h = 4 / ((n.draw+1) - 1 - 1))
+par(op)
+layout(1)
+```
+
+# Multiple Regression
+
+## Multiple regression
+
+The simple regression model readily generalises to the situation where we have $m$ predictors not just one
+      $$y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \dots + \beta_mx_{im} + \varepsilon_i$$
+
+Now we have $m + 1$ parameters to estimate, one for intercept and one each for the $m$ predictors $x_m$. Can have as many as $m = n - 1$ predictor variables
+
+Simple description as a regression lines starts to be blurred; with $m = 2$ we have a *regression plane*
+
+But in other respects the model fitting, assumptions, etc remain the same
+
+We do now have the problem of deciding which of the $m$ predictions are related to $y$
+
+## Multiple regression: lung function in cystic fibrosis patients
+
+`pemax` is *maximal expiratory pressure*, a measure of lung function
+
+A number of predictor variables thought to affect `pemax`
+
+- Age, sex, height, weight, & body mass (`bmp`) of each patient
+- Forced expiratory (`fev1`) & residual (`rv`) volume
+- Functional residual capacity (`frc`) & total lung capacity (`tlc`)
+
+## Multiple regression: lung function in cystic fibrosis patients
+
+Typical statistical output for the full model
+
+\tiny
+```{r lung-function-fit}
+data(cystfibr)
+cystfibr <- transform(cystfibr, sex = factor(sex, labels = c("Male","Female"), levels = c(0,1)))
+lung.m <- lm(pemax ~ age + sex + height + weight + bmp + fev1 + rv + frc + tlc, data = cystfibr)
+lung.0 <- lm(pemax ~ 1, data = cystfibr)
+print(summary(lung.m), digits = 3)
+```
+\normalsize
+
+## Multiple regression: lung function in cystic fibrosis patients
+
+No *t* tests are significant, but this is only a reflection of what would happen if you removed that variable from model leaving others in the model
+
+However, the joint *F* test is significant, indicating that there is an effect in there somewhere
+
+\scriptsize
+```{r, lung-function-anova}
+print(anova(lung.0, lung.m), digits = 4)
+```
+\normalsize
+
+## Multiple regression: lung function in cystic fibrosis patients
+
+\alert{Sequential sums of squares} (Type I), ordering matters & changes results
+
+\scriptsize
+```{r, lung-function-sequential-ssq}
+print(anova(lung.m), digits = 4)
+```
+\normalsize
+
+# Model selection
+
+## Model selection
+
+Where we have several candidate covariates for inclusion in a model, we face the problem of selecting a \alert{minimal, adequate model}
+
+A minimal, adequate model is one that is complex enough to provide sufficient fit to the observed response but no more complex than is necessary
+
+Several automated techniques available to help
+
+\small
+
+1. Best subsets regression
+2. Forward selection
+3. Backwards elimination
+4. Stepwise regression (forward selection and backward elimination)
+
+\normalsize
+
+Regardless of method used to select a minimal model there's no free lunch
+
+*p* values from tests on the selected model do not account for the selection procedure; anti-conservative, too many variables selected
+
+## Model selection
+
+Model or subset selection often used for 2 reasons
+
+1. \alert{Interpretation}: Smaller subset of predictors with strongest effects on response $y$ may be easier to interpret and explain
+2. \alert{Prediction accuracy}: least squares estimates have low **bias** but large **variance**
+
+    Can sometimes improve prediction accuracy by shrinking the coefficients or setting some to zero. In doing so we sacrifice a bit of **bias**
+
+Subset selection leads to a small set of interpretable predictors, with possibly lower error (MSE) than the full model
+
+Subset selection is a discrete process — predictors are either *in* the model, or *not*
+
+## Information Criteria I
+
+\alert{Akaike information criterion} (AIC) is an index of fit that takes account of the parsimony of the model by penalising the number of parameters
+
+The more parameters in the model the better the fit --- if you have as many parameters as data points then the fit is perfect but the model has no explanatory power! A Trade-off
+
+AIC is useful as it explicitly penalises any superfluous parameters in the model by adding $2p$ to the variance or deviance of the model
+
+$$\mathrm{AIC} = -2 \times \log(\mathrm{likelihood}) + 2p$$
+
+Associated is Bayes information criterion (BIC), which applies a stronger penalty of $p \log n$, where $n$ is number of observations
+
+For linear regression the $-2 \times \log(\mathrm{likelihood})$ is $n \log(RSS/n) + \mathrm{constant}$
+
+## Information Criteria II
+
+We can use AIC and BIC to compare two or more \alert{nested} models
+
+Nested means that one model is a subset of the other
+
+The model with the *smallest* AIC or BIC is to be preferred
+
+Note that you can get negative values for AIC and BIC. This is fine, just go for the smallest value: -21.5 is better than -15.4
+
+Difference in AIC of 2 is expected with a redundant parameter. Models with AIC differing by 2 or less are effectively the same
+
+## Best subsets
+
+\alert{Best subsets} identifies the *best* model of each *size*, & compare models via a statistic; \alert{AIC} and \alert{BIC} are commonly used
+
+```{r best-subsets, fig.height = 4.5, crop.plot = TRUE}
+subs <- regsubsets(formula(lung.m), data = cystfibr, method = "exhaustive", nvmax = 9)
+plot(subs)
+```
+
+## Best subsets
+
+Having some manual control is handy; might want to remove the other lung function variables first
+
+```{r best-subsets-2, fig.height = 4.5, crop.plot = TRUE}
+lung.m2 <- update(lung.m, . ~ . - tlc - frc - rv - fev1)
+subs <- regsubsets(formula(lung.m2),
+                   data = cystfibr, method = "exhaustive", nvmax = 9)
+plot(subs)
+```
+
+## Forwards, backwards, and stepwise selection
+
+\alert{Stepwise selection} is a combination of **forward** selection & **backward** elimination steps
+
+\alert{Forward selection}
+
+1. Start with only the constant term
+2. Fit $m$ models, each adding one of the $m$ predictors to the current model
+3. Identify the *best* model from the set of models
+4. Add the predictor from this *best* model to the current model **if** this results in a significant improvement in model fit
+5. Repeat 3--4 until no further addition results in a better model
+
+## Forward selection
+
+\alert{Forward selection} starts with only the intercept term & adds variables until no improvement can be made
+
+AIC used to assess improvement as terms added; notice that the inclusion of `rv` is probably unwarranted
+
+\scriptsize
+```{r forward-selection}
+fwd <- step(lung.0, scope = formula(lung.m), direction = "forward", trace = FALSE)
+fwd$anova
+```
+\normalsize
+
+## Backwards elimination
+
+\alert{Backwards elimination} starts with the full model & removes variables until no improvement can be made
+
+Can only fit the full model if you have fewer variables than observations
+
+\scriptsize
+```{r backward-elimination}
+bkd <- step(lung.m, scope = formula(lung.0), direction = "backward", trace = FALSE)
+bkd$anova
+bkd
+```
+\normalsize
+
+## Stepwise selection
+
+Stepwise selection starts with either the intercept or the full model & adds or removes variables at each step until no improvement can be made
+
+\scriptsize
+```{r stepwise-selection}
+both <- step(lung.0, scope = formula(lung.m), direction = "both", trace = FALSE)
+both$anova
+both
+```
+\normalsize
+
+## Stepwise selection
+
+Here AIC used to assess improvement, but often *p* values & formal statistical tests are used to test improvement
+
+Multiple testing is then a major problem, but AIC may be too liberal
+
+No guarantee that selection will find the best model or that they will agree on the best model
+
+*p* values of terms in the selected models no longer have their usual meaning
+
+Model coefficients ($\hat{\beta}_j$) are biased
+
+# Interactions
+
+## Interaction terms
+
+Up to now we've only considered the \alert{main effects} of the variables in our model
+
+There, terms are \alert{additive}, each variable contributing an amount to the model irrespective of the values of the other predictors
+
+But what if the effect of one variable depends upon the value of one or more other variables?
+
+This is where \alert{interaction terms} come in
+
+## Interaction terms
+
+Two explanatory variables \alert{interact} when the \alert{partial} effect of one depends on the *value* of the other
+
+**\alert{Marginal effect}** --- effect of $x_1$ on $y$ *ignoring* the effects on $y$ of the other variables $x_j$
+
+**\alert{Partial effect}** --- effect of $x_1$ on $y$ *accounting for* the effects on $y$ of the other variables $x_j$
+
+Interactions occur in several types
+
+- continuous --- factor interactions
+- continuous --- continuous interactions
+- factor --- factor interactions
+
+## Interaction Terms: Continuous---factor interactions
+
+### PTSD in adult female survivors of childhood sexual abuse
+
+45 women treated at a clinic who reported childhood sexual abuse (CSA) were measured for PTSD & childhood physical abuse (CPA) on standardised scales
+
+31 women at same clinic but did not report CSA were also assessed
+
+Two models
+
+\begin{equation}
+\mathsf{PTSD}_i = \beta_0 + \beta_1 \mathsf{CSA}_i + \beta_2 \mathsf{CPA}_i + \varepsilon_i
+\end{equation}
+
+\begin{equation}
+\mathsf{PTSD}_i = \beta_0 + \beta_1 \mathsf{CSA}_i + \beta_2 \mathsf{CPA}_i + \beta_3 (\mathsf{CSA}_i \times \mathsf{CPA}_i) \varepsilon_i
+\end{equation}
+
+## Interaction Terms: Continuous---factor interactions
+
+### PTSD in adult female survivors of childhood sexual abuse
+
+```{r sex-abuse-plot}
+data("sexab", package = "faraway")
+sexab <- transform(sexab, csa = relevel(csa, "NotAbused"))
+sexab.p <- ggplot(sexab, aes(x = cpa, y = ptsd, colour = csa, shape = csa)) +
+    geom_point() + theme(legend.position = "top")
+sexab.p + geom_smooth(method = "lm")
+```
+
+## Interaction Terms: Continuous---factor interactions
+
+\scriptsize
+```{r sex-abuse-full-model}
+m.full <- lm(ptsd ~ cpa * csa, data = sexab)
+summary(m.full)
+```
+\normalsize
+
+## Interaction Terms: Continuous---factor interactions
+
+Interactions between factors can be represented as \alert{dummy} variables, indicating group/combination membership
+
+Reference level (`NotAbused`) absorbed into the intercept term
+
+Model is parameterised in terms of differences of means from the reference level
+
+\scriptsize
+```{r sex-abuse-model-matrix}
+head(model.matrix(m.full), n = 3)
+tail(model.matrix(m.full), n = 3)
+```
+\normalsize
+
+## Interaction Terms: Continuous---factor interactions
+
+Model fits *with* interaction
+
+```{r sex-abuse-plot-interaction-model}
+coefs <- coef(m.full)
+intSlope <- data.frame(int = c(coefs[1], coefs[1] + coefs[3]),
+                       slope = c(coefs[2], coefs[2] + coefs[4]),
+                       abuse = relevel(factor(c("NotAbused","Abused")),
+                       "NotAbused"))
+sexab.p + geom_abline(aes(intercept = int, slope = slope, colour = abuse),
+                      data = intSlope)
+```
+
+## Interaction Terms: Continuous---factor interactions
+
+Model fits *without* interaction
+
+```{r sex-abuse-plot-additive-model}
+m.redu <- update(m.full, . ~ . - cpa:csa)
+coefs <- coef(m.redu)
+intSlope <- data.frame(int = c(coefs[1], coefs[1] + coefs[3]),
+                       slope = c(coefs[2], coefs[2]),
+                       abuse = relevel(factor(c("NotAbused","Abused")),
+                       "NotAbused"))
+sexab.p + geom_abline(aes(intercept = int, slope = slope, colour = abuse),
+                      data = intSlope)
+```
+
+## Interaction Terms: Continuous---continuous interactions
+
+In continuous---continuous interactions we don't need to worry about coding
+
+This type of interaction is represented by a new variable that is the product of the two variables
+
+If we have $x_1$ and $x_2$, the interaction would be be $(x_1 \times x_2)$
+
+
+## Interaction Terms: Continuous---continuous interactions
+
+50 infants of age approximately 2 months were weighed immediately before & after each breast feeding
+
+Measured the intake of breast milk (dL) along with various other data
+
+```{r kfm-data, fig.width = 12, fig.height = 4, out.width = "\\textwidth"}
+data("kfm", package = "ISwR")
+p1 <- ggplot(kfm, aes(y = dl.milk, x = mat.weight)) + geom_point() +
+    geom_smooth(method = "loess") + ylab("Milk intake") + xlab("Mother's Weight")
+p2 <- ggplot(kfm, aes(y = dl.milk, x = weight)) + geom_point() +
+    geom_smooth(method = "loess") + ylab("Milk intake") + xlab("Baby's Weight")
+p3 <- ggplot(kfm, aes(y = dl.milk, x = mat.weight, size = weight)) +
+    geom_point() + ylab("Milk intake") + xlab("Mother's Weight")
+grid.arrange(p1, p2, p3, ncol = 3)
+```
+
+## Interaction Terms: Continuous---continuous interactions
+
+\scriptsize
+```{r kfm-models}
+kfm.full <- lm(dl.milk ~ mat.weight * weight, data = kfm)
+kfm.redu <- update(kfm.full, . ~ . - mat.weight:weight)
+summary(kfm.full)
+```
+\normalsize
+
+## Interaction Terms: Continuous---continuous interactions
+
+Testing whether the interaction term is required via an *F* test
+
+Marginally significant; effect looks small
+
+\scriptsize
+```{r kfm-anova}
+anova(kfm.redu, kfm.full)
+```
+\normalsize
+
+## Interaction Terms: Continuous---continuous interactions
+
+Visualisation of the effect of continuous---continuous interactions
+
+```{r kfm-wireframe, out.width = "0.9\\textwidth", crop.plot = TRUE}
+pkfm <- with(kfm,
+             expand.grid(weight = seq(min(weight), max(weight), length = 50),
+                         mat.weight = seq(min(mat.weight), max(mat.weight),
+                                          length = 50)))
+pkfm <- transform(pkfm, fitted = predict(kfm.redu, newdata = pkfm))
+p1 <- lattice::wireframe(fitted ~ weight * mat.weight, data = pkfm,
+                         scales=list(arrows = FALSE, col = 1),
+                         par.settings = list(axis.line = list(col = "transparent")))
+pkfm <- transform(pkfm, fitted = predict(kfm.full, newdata = pkfm))
+p2 <- lattice::wireframe(fitted ~ weight * mat.weight, data = pkfm,
+                         scales=list(arrows = FALSE, col = 1),
+                         par.settings = list(axis.line = list(col = "transparent")))
+grid.arrange(p1, p2, ncol = 2)
+```
+
+## Interaction Terms: Effects displays
+
+Focus on high-order terms in the model; each high-order term is allowed to vary over it’s range, while other variables are held at some average values
+
+```{r kfm-effects}
+kfm.eff <- allEffects(kfm.full)
+plot(kfm.eff)
+```
+
+<!-- ## Interaction Terms: Contrast matrices -->
+
+<!-- \columnsbegin -->
+
+<!-- \column{0.3\textwidth} -->
+
+<!-- \scriptsize -->
+<!-- ```{r contrast-matrices} -->
+<!-- B <- matrix(c(1,0,0,0, -->
+<!--               1,0,0,0, -->
+<!--               0,1,0,0, -->
+<!--               0,0,1,0, -->
+<!--               0,0,0,1), ncol = 4, byrow = TRUE) -->
+<!-- rownames(B) <- as.character(1:5) -->
+<!-- colnames(B) <- as.character(1:4) -->
+<!-- B -->
+<!-- ``` -->
+<!-- \normalsize -->
+
+<!-- \column{0.3\textwidth} -->
+
+<!-- \scriptsize -->
+<!-- ```{r contrast-matrices-2} -->
+<!-- C <- contr.treatment(4) -->
+<!-- C -->
+<!-- ``` -->
+<!-- \normalsize -->
+
+<!-- \column{0.3\textwidth} -->
+
+<!-- \scriptsize -->
+<!-- ```{r contrast-matrices-3} -->
+<!-- BC <- B%*%C -->
+<!-- BC -->
+<!-- ``` -->
+<!-- \normalsize -->
+
+<!-- \columnsend -->
+
+## Interaction terms: Principal of Marginality
+
+The *partial* (*main*) effects of variables in a model are \alert{marginal} to any interaction terms in which they participate
+
+Partial effects of CPA & CSA are *marginal* to the $\mathsf{CPA} \times \mathsf{CSA}$ interaction
+
+In general, should not test partial effects that are marginal to an interaction term
+
+Can test the partial effects if we can remove the interaction on empirical or theoretical grounds
+
+Also doesn't make sense to fit models with interaction terms without including the main effects of terms participating in the interaction
+
+# Analysis of Variance
+
+## Analysis of Variance
+
+\alert{Analysis of Variance} (ANOVA) is the classic name for a linear model where the predictor (explanatory) variables are *categorical*
+
+Earlier ANOVA used to partition variance in $y$ into components explained by $x_j$ & a residual component not explained by the regression model
+
+A slightly more restricted view of ANOVA is that it is a technique for partitioning the variation in $y$ into that explained by one or more categorical predictor variables
+
+The categories of each factor are the groups or experimental treatments
+
+## Analysis of Variance
+
+ANOVA considers the different sources of variation that might arise on a data set
+
+Of particular interest is on the differences in the mean value of $y$ between groups
+
+We can think of *within-group* and *between-group* variances
+
+- **Between-group** variance is that due to the treatment (group) effects
+- **Within-group** variance is that due to the variability of individuals & measurement error
+
+There Will always be variation between individuals but is this within-group variance large or small, relative to the variance *between* groups?
+
+## ANOVA how *many* ways?
+
+One of the complications surrounding ANOVA is the convoluted nomenclature used describe variants of the method
+
+Variants commonly distinguished by the number of categorical variables in the model
+
+- \alert{One-way ANOVA} contains a single categorical variable
+- \alert{Two-way ANOVA} contains two categorical variables
+- \alert{Three-way ANOVA} contains three categorical variables
+- ...
+
+Two-way and higher ANOVA potentially involve the consideration of *factor---factor* interactions
+
+## One-way ANOVA
+
+In a \alert{One-way ANOVA} we have a single categorical variable $x$ with *two or more* levels With two levels we have the same analysis as the *t* test
+
+If we consider differences between patients with different illnesses, we might use an `illness-group` factor whose *levels* might be
+
+- Multiple Sclerosis,
+- Irritable Bowel Syndrome, &
+- Chronic Fatigue Syndrome
+
+If we're testing the 5 doses of a drug on Multiple Sclerosis patients, the factor might be `dose` with levels: placebo, 5 mg, 10 mg, 15 mg, & 20 mg
+
+## One-way ANOVA
+
+Assume we have a single categorical variable $x$ with three levels. The One-way ANOVA model using dummy coding or treatment contrasts is
+
+$$y_i = \beta_0 + \beta_1D_{i1} + \beta_2D_{i2} + \varepsilon_i$$
+
+Where $D_{ij}$ is the coding for the $j$th level (group) for the $i$th observation
+
+| Group | $D_1$ | $D_2$ |
+|:-----:|:-----:|:-----:|
+|   1   |   0   |   0   |
+|   2   |   1   |   0   |
+|   3   |   0   |   1   |
+
+## One-way ANOVA
+
+Measure the **between-group** variance as the *regression sums of squares*
+
+The **within-group** variance is the *residual sums of squares*
+
+An **omnibus test** F statistic is used to test the null hypothesis of *no differences among population group means*
+
+$$\mathsf{H_0:} \; \beta_1 = \beta_2 = 0$$
+
+## One-way ANOVA
+
+Attree & colleagues (2003, *Applied Neurophysiology* **10**(2)) conducted a study of variation in cognitive function in patients with *Inflammatory Bowel Disease* (IBD) & *Irritable Bowel Syndrome* (IBS) relative to health \alert{controls} (Healthy)
+
+Response variable was the *Verbal IQ Score* (VIQ)
+
+Previous studies had shown that VIQs were impaired in other patient groups relative to healthy controls
+
+## One-way ANOVA
+
+```{r verbal-1}
+verbal <- readRDS("~/work/teaching/uregina/jsgs814-biostats-for-public-health/data-sets/book/verbal-iq.rds")
+verbal <- transform(verbal, groups = relevel(groups, "Healthy"))
+ggplot(verbal, aes(y = viq, x = groups)) + geom_boxplot()
+```
+
+## One-way ANOVA
+
+Results of fitting one-way ANOVA to the verbal IQ score data
+
+\scriptsize
+```{r verbal-2}
+v.m1 <- lm(viq ~ groups, data = verbal)
+anova(v.m1)
+```
+\normalsize
+
+## One-way ANOVA
+
+Multiple comparisons
+
+```{r verbal-2-plot}
+v.aov <- aov(viq ~ groups, data = verbal)
+v.tuk <- TukeyHSD(v.aov)
+df <- data.frame(v.tuk[[1]][, 1:3])
+df <- transform(df, Group = rownames(v.tuk[[1]]))
+ggplot(df, aes(x = Group, y = diff, ymax = upr, ymin = lwr, colour = Group)) +
+    geom_hline(aes(yintercept = 0)) +
+    geom_point() + geom_errorbar(width = 0.2) + theme(legend.position = "right") +
+    coord_flip() + ylab("Differences in mean levels of groups") +
+    ggtitle("95% family-wise confidence level")
+```
+
+# Example
+
+## PCBs in Lake Trout
+
+Human exposure to polychlorinated biphenyls (PCBs) from consumption of fish is a health concern in the Great Lakes region of the US
+
+- Exposure limits based on fish tissue concentrations; anglers can not easily determine this concentration
+- Can size of fish be used to infer PCB tissue concentration?
+- Data are PCB concentrations in lake trout (1974--2003)
+
+```{r lake-trout-0, echo=FALSE, crop.plot=TRUE, fig.width = 7, out.width = "0.6\\textwidth", tidy = FALSE}
+#laketrout <- read.csv("./R/laketrout2.csv")
+## gets rid of a very small pcb value and a length 0 fish
+#laketrout <- with(laketrout, laketrout[pcb>exp(-2) & length>0, ])
+#p <- ggplot(laketrout, aes(x = length, y = log(pcb))) +
+#    geom_point() +
+#        geom_smooth(colour = "forestgreen", se = FALSE, size = 1.5) +
+#            geom_smooth(method = "lm", colour = "red", se = FALSE, size = 1.5) #+ theme_bw()
+#p
+```
+
+## Lake trout PCB example
+
+\scriptsize
+
+```{r lake-trout-1, echo=FALSE}
+#pcb.m1 <- lm(log(pcb) ~ length, data = laketrout)
+#summary(pcb.m1)
+```
+\normalsize
+
+## Lake trout PCB example
+
+- *Estimate* is $\beta_j$, the model coefficients, on log scale
+- For 1 cm increase in fish length, PCB tissue concentration increases by $\mathrm{1.3 \, mg \, kg^{-1}}$
+- *t-value* is the $t$ statistic, the ratio of the estimate and its standard error
+     $$t = \frac{\hat{\beta}_j}{\hat{\mathrm{se}}_j}$$
+- Probability of achieving a $t$ as large or larger than the observed
+- Intercept of no biological interest --- PCB concentration of a length 0 fish
+
+\scriptsize
+
+```{r lake-trout-2}
+#coef(pcb.m1)
+```
+\normalsize
+
+## Lake trout PCB example
+
+- $F$ is the $F$-ratio, the ratio of the regression and residual variances
+     $$F = \frac{\sum\limits^n_{i=1}(\hat{y}_i - \bar{y})^2 / p}{\sum\limits^n_{i=1}(y_i - \hat{y}_i)^2 / [n-(p+1)]} = \frac{\mathrm{MS_{reg}}}{\mathrm{MS_{resid}}}$$
+- Probability of $F$ greater than or equal to observed from $F$-distribution with $p$ and $n - (p + 1)$ degrees of freedom
+
+\scriptsize
+```{r lake-trout-3, echo=TRUE}
+#anova(pcb.m1)
+```
+\normalsize
+
+## Re-use
+
+Copyright © (2015) Gavin L. Simpson Some Rights Reserved
+
+Unless indicated otherwise, this slide deck is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
+
+\begin{center}
+  \ccby
+\end{center}

@@ -1,0 +1,36 @@
+---
+title: "Introduction"
+author: Gavin L. Simpson
+date: February, 2017
+fontsize: 10pt
+classoption: "compress, aspectratio=169"
+output:
+  beamer_presentation:
+    theme: metropolis
+    keep_tex: true
+    highlight: tango
+    slide_level: 2
+    template: ~/work/teaching/adelaide/feb-2017/slide-template-feb-2017.tex
+    fig_width: 6
+    fig_height: 3.5
+    fig_crop: false
+    pandoc_args: [
+      "--latex-engine=xelatex"
+    ]
+---
+
+```{r setup-options, echo = FALSE, results = "hide", message = FALSE}
+knitr::opts_chunk$set(comment=NA, fig.align = "center", out.width = "0.7\\linewidth",
+                      echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE)
+knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
+```
+
+## Re-use
+
+Copyright © (2017) Gavin L. Simpson Some Rights Reserved
+
+Unless indicated otherwise, this slide deck is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
+
+\begin{center}
+  \ccby
+\end{center}
