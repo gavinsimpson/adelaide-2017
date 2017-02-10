@@ -1,0 +1,263 @@
+---
+title: "Generalized Linear models"
+author: Gavin L. Simpson
+date: February, 2017
+fontsize: 10pt
+classoption: "compress, aspectratio=169"
+output:
+  beamer_presentation:
+    theme: metropolis
+    keep_tex: true
+    highlight: tango
+    slide_level: 2
+    template: ~/work/teaching/adelaide/feb-2017/slide-template-feb-2017.tex
+    fig_width: 6
+    fig_height: 4
+    fig_crop: false
+    pandoc_args: [
+      "--latex-engine=xelatex"
+    ]
+---
+
+```{r setup-options, echo = FALSE, results = "hide", message = FALSE}
+knitr::opts_chunk$set(comment=NA, prompt = TRUE, fig.align = "center", out.width = "0.7\\linewidth",
+                      echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE)
+knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
+```
+
+```{r packages, echo = FALSE, results = "hide", cache = FALSE}
+library("ggplot2")
+library("cowplot")
+theme_set(theme_bw())
+```
+
+# Generalized linear models
+
+## Generalized linear models
+
+- Generalised linear models (GLMs) are a synthesis and extension of linear regression plus Poisson, logistic and other regression models
+- GLMs extend the types of data and error distributions that can be modelled beyond the Gaussian data of linear regression
+- With GLMs we can model count data, binary/presence absence data, and concentration data where the response variable is not continuous.
+- Such data have different mean-variance relationships and we would not expect errors to be Gaussian.
+- Typical uses of GLMs in ecology are
+    - Poisson GLM for count data
+    - Logistic GLM for presence absence data
+    - Gamma GLM for non-negative or positive continuous data
+` GLMs can handle many problems that appear non-linear
+- Not necessary to transform data as this is handled as part of the GLM process
+
+## The structure of a GLM
+
+A GLM consists of three components, chosen/specified by the user
+
+1. A random component, specifying the conditional distribution of of the response $Y_i$ given the values of the explanatory data. \alert{Error Function}
+2. A \alert{Linear Predictor} $\eta$ --- the linear function of regressors
+    $$\eta_i = \alpha + \beta_1 X_{i1} + \beta_2 X_{i2} + \cdots + \beta_k X_{ik}$$
+	The $X_{ij}$ are prescribed functions of the explanatory variables and can be transformed variables, dummy variables, polynomial terms, interactions etc.
+3. A smooth and invertible \alert{Link Function} $g(\cdot)$, which transforms the expectation of the response $\mu_i \equiv E(Y_i)$ to the linear predictor
+    $$g(\mu_i) = \eta_i = \alpha + \beta_1 X_{i1} + \beta_2 X_{i2} + \cdots + \beta_k X_{ik}$$
+    As $g(\cdot)$ is invertible, we can write
+    $$\mu_i = g^{-1}(\eta_i) = g^{-1}(\alpha + \beta_1 X_{i1} + \beta_2 X_{i2} + \cdots + \beta_k X_{ik})$$
+
+## Conditional distribution of *y~i~*
+
+Originally GLMs were specified for error distribution functions belonging to the *exponential family* of probability distributions
+
+- Continuous probability distributions
+    - Gaussian (or normal distribution; used in linear regression)
+	- Weibull
+	- Gamma (data with constant coefficient of variation)
+	- Exponential (time to death, survival analysis)
+	- Chi-square
+	- Inverse-Gaussian
+- Discrete probability distributions
+    - Poisson (count data)
+	- Binomial (0/1 data, counts from a total)
+	- Multinomial
+
+Choice depends on range of $Y_i$ and on the relationship between the variance and the expectation of $Y_i$ --- *mean-variance relationship*
+
+## Conditional distribution of *y~i~*
+
+Characteristics of common GLM probability distributions
+
+\begin{center}
+	\begin{tabular}{lccc}
+\hline
+                 & Canonical Link & Range of $Y_i$               & Variance function              \\
+\hline
+Gaussian         & Identity       & $(-\infty, +\infty)$         & $\phi$                         \\
+Poisson          & Log            & $0,1,2,\ldots,\infty$        & $\mu_i$                        \\
+Binomial         & Logit          & $\frac{0,1,\ldots,n_i}{n_i}$ & $\frac{\mu_i(1 - \mu_i)}{n_i}$ \\
+Gamma            & Inverse        & $(0, \infty)$                & $\phi \mu_i^2$                 \\
+Inverse-Gaussian & Inverse-square & $(0, \infty)$                & $\phi \mu_i^3$                 \\
+\hline
+    \end{tabular}
+\end{center}
+
+$\phi$ is the dispersion parameter; $\mu_i$ is the expectation of $Y_i$. In the binomial family, $n_i$ is the number of trials
+
+## Ecologically-relevant probability distributions
+
+Gaussian distribution is rarely adequate in (palaoe)ecology; GLMs offer ecologically meaningful alternatives
+
+- \alert{Poisson} --- counts; integers, non-negative, variance increases with mean
+- \alert{Binomial} --- observed proportions from a total; integers, non-negative, bounded at 0 and 1, variance largest at $\pi = 0.5$
+- \alert{Binomial} --- presence absence data; discrete values, 0 and 1, models probability of success
+- \alert{Gamma} --- concentrations; non-negative (strictly positive with log link) real values, variance increases with mean, many zero values and some high values
+
+## Logistic regression --- *Darlingtonia*
+
+Timed censuses at 42 randomly-chosen leaves of the cobra lily (*Darlingtonia californica*)
+
+- Recorded number of wasp visits at 10 of the 42 leaves
+- Test hypothesis that the probability of visitation is related to leaf height
+- Response is dichotomous variable (0/1)
+- A suitable model is the logistic model
+    $$\pi = \frac{e^{\beta_0 + \beta_i X}}{1 + e^{\beta_0 + \beta_1 X_i}}$$
+- The logit transformation produces
+    $$\log_e \left( \frac{\pi}{1-\pi} \right) = \beta_0 + \beta_1 X_i$$
+- This is the logistic regression and it is a special case of the GLM, with a binomial error distribution and the logit link function
+
+## Logistic regression --- *Darlingtonia*
+
+$$\log_e \left( \frac{\pi}{1-\pi} \right) = \beta_0 + \beta_1 X_i$$
+
+- $\beta_0$ is a type of intercept; determines the probability of success ($Y_i = 1$) $\pi$ where X = 0
+- If $\beta_0 = 0$ then $\pi = 0.5$
+-  $\beta_1$ is similar to the slope and determines how steeply the fitted logistic curve rises to the maximum value of $\pi = 1$
+- Together, $\beta_0$ and $\beta_1$ specify the range of the $X$ variable over which most of the rise occurs and determine how quickly the probability rises from 0 to 1
+- Estimate the model parameters using \alert{Maximum Likelihood}; find parameter values that make the observed data most probable
+
+```{r load-darl-data, echo = FALSE}
+wasp <- read.csv("../00-data-sets/darlingtonia.csv", skip = 1L)
+```
+
+## Logistic regression --- *Darlingtonia*
+
+```{r fit-darlingtonia}
+mod <- glm(visited ~ leafHeight, data = wasp, family = binomial)
+mod
+plogis(coef(mod))
+```
+
+## Logistic regression --- *Darlingtonia*
+
+```{r summary-darlingtonia}
+summary(mod)
+```
+
+## Logistic regression --- *Darlingtonia*
+
+```{r plot-darlingtonia, echo = FALSE}
+pdat <- with(wasp, data.frame(leafHeight = seq(min(leafHeight), max(leafHeight), length = 100)))
+pred <- predict(mod, pdat, type = "link", se.fit = TRUE)
+ilink <- family(mod)$linkinv
+pdat <- transform(pdat, fitted = ilink(pred$fit),
+                  upper = ilink(pred$fit + (2 * pred$se.fit)),
+                  lower = ilink(pred$fit - (2 * pred$se.fit)))
+ggplot(wasp, aes(x = leafHeight, y = visited)) +
+    geom_point() +
+    geom_ribbon(aes(ymin = lower, ymax = upper, x = leafHeight), data = pdat,
+                inherit.aes = FALSE, alpha = 0.2) +
+    geom_line(data = pdat, aes(y = fitted)) +
+    labs(x = "Leaf Height [cm]", y = "Probability of visitation")
+```
+
+## Wald statistics
+
+$z$ values are Wald statistics, which under the null hypothesis follow *assymptotically* a standard normal distribution
+
+Tests the null hypothesis that $\beta_i = 0$
+$$z = \hat{\beta}_i / \mathrm{SE}(\hat{\beta}_i)$$
+
+```{r coeftab-darlingtonia, results = "asis", echo = FALSE}
+knitr::kable(round(summary(mod)$coefficients, 4))
+```
+
+## Deviance
+
+- In least squares we have the residual sum of squares as the measure of lack of fitted
+- In GLMs, \alert{deviance} plays the same role
+- Deviance is defined as twice the log likelihood of the observed data under the current model
+- Deviance is defined relative to an arbitrary constant --- only \alert{differences} of deviances have any meaning
+- Differences in deviances are also known as ratios of likelihoods
+- An alternative to the Wald tests are deviance ratio or likelihood ratio tests
+    $$F = \frac{(D_a - D_b) / (\mathsf{df}_a - \mathsf{df}_b)}{D_b / \mathsf{df}_b}$$
+- $D_j$ deviance of model, where we test if model A is a significant improvement over model B; $\mathsf{df}_k$ are the degrees of freedom of the respective model
+
+## A Gamma GLM --- simple age-depth modelling
+
+- Radiocarbon age estimates from depths within a peat bog (Brew & Maddy, 1995, QRA Technical Guide No.~5)
+- Estimate accumulation rate; assumption here is linear accumulation
+- Uncertainty or error is greater at depth; mean variance relationship
+- Fit mid-depth & mid-calibrated age points
+
+\scriptsize
+```{r load-maddy, echo = FALSE, results="asis"}
+maddy <- read.csv("../00-data-sets/maddy-peat.csv")
+maddy <- transform(maddy, midDepth = upperDepth - (0.5 * abs(upperDepth - lowerDepth)),
+                   calMid = calUpper - (0.5 * abs(calUpper - calLower)))
+knitr::kable(maddy)
+```
+\normalsize
+
+## A Gamma GLM --- simple age-depth modelling
+
+```{r plot-maddy, echo=FALSE}
+ggplot(maddy, aes(x = midDepth, y = calMid)) + geom_point() +
+    labs(y = "Calibrated Age", x = "Depth")
+```
+
+## A Gamma GLM --- simple age-depth modelling
+
+```{r peat-model}
+mod <- glm(calMid ~ midDepth, data = maddy, family = Gamma(link = "identity"))
+summary(mod)
+```
+
+## A Gamma GLM --- simple age-depth modelling
+
+```{r plot-maddy-fitted, echo=FALSE, fig.width=9, out.width = "0.9\\linewidth"}
+pdat <- with(maddy, data.frame(midDepth = seq(min(midDepth), max(midDepth), length = 100)))
+pred <- predict(mod, pdat, type = "link", se.fit = TRUE)
+ilink <- family(mod)$linkinv
+pdat <- transform(pdat, fitted = ilink(pred$fit),
+                  upper = ilink(pred$fit + (2 * pred$se.fit)),
+                  lower = ilink(pred$fit - (2 * pred$se.fit)))
+
+p1 <- ggplot(maddy, aes(x = midDepth, y = calMid)) +
+    geom_ribbon(aes(ymin = lower, ymax = upper, x = midDepth), data = pdat,
+                inherit.aes = FALSE, alpha = 0.2) +
+    geom_line(data = pdat, aes(y = fitted)) +
+    geom_point() +
+    labs(y = "Calibrated Age", x = "Depth", title = "Gamma GLM")
+
+
+mod2 <- glm(calMid ~ midDepth, data = maddy, family = gaussian)
+pdat <- with(maddy, data.frame(midDepth = seq(min(midDepth), max(midDepth), length = 100)))
+pred <- predict(mod2, pdat, type = "link", se.fit = TRUE)
+ilink <- family(mod2)$linkinv
+pdat <- transform(pdat, fitted = ilink(pred$fit),
+                  upper = ilink(pred$fit + (2 * pred$se.fit)),
+                  lower = ilink(pred$fit - (2 * pred$se.fit)))
+
+p2 <- ggplot(maddy, aes(x = midDepth, y = calMid)) +
+    geom_ribbon(aes(ymin = lower, ymax = upper, x = midDepth), data = pdat,
+                inherit.aes = FALSE, alpha = 0.2) +
+    geom_line(data = pdat, aes(y = fitted)) +
+    geom_point() +
+    labs(y = "Calibrated Age", x = "Depth", title = "Linear Model")
+
+plot_grid(p1, p2, ncol = 2)
+```
+
+## Re-use
+
+Copyright © (2017) Gavin L. Simpson Some Rights Reserved
+
+Unless indicated otherwise, this slide deck is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
+
+\begin{center}
+  \ccby
+\end{center}
