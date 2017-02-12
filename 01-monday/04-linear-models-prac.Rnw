@@ -1,0 +1,336 @@
+\documentclass[letterpaper,10pt]{article}
+\usepackage{graphicx,xspace}
+\usepackage[utf8x]{inputenc}
+\newcommand{\R}{\textsf{R}\xspace}
+
+
+\usepackage{alltt}
+\usepackage[left=1.5cm,top=1.5cm,bottom=1.5cm,right=1.5cm]{geometry}
+\renewcommand{\abstractname}{Summary}
+\newenvironment{rcode}{\begin{footnotesize}\begin{alltt}}{\end{alltt}\end{footnotesize}}
+\newenvironment{rline}{\begin{small}\begin{ttfamily}}{\end{ttfamily}\end{small}}
+%\setlength{\parskip}{10pt} \setlength{\parindent}{0mm}
+
+\usepackage{/home/gavin/R/build/3.3-patched/share/texmf/tex/latex/Sweave}
+
+\begin{document}
+\title{Lab: Linear Regression}
+\author{Gavin Simpson}
+\date{Feb 2017}
+\maketitle
+
+\begin{abstract}
+In this lab you will be introduced to fitting linear regression models using \R.
+\end{abstract}
+
+\section{Simple linear regression}
+This is the simplest form of regression with a single response or dependent variable $y$ and one predictor or independent variables $x$. The linear regression model is defined by:
+\begin{displaymath}
+    y_i=\alpha+\beta x_i+\epsilon_i
+\end{displaymath}
+where $\alpha$ is a constant, the intercept, $\beta$ is the slope and $\epsilon_i$ is the error component.
+
+In this part of the practical class we will model the response of stomatal density (number of stomata $\mathrm{mm}^{-2}$ leaf) of modern leaves of \textit{Salix herbacae} (dwarf willow) in relation to atmospheric $\mathrm{CO}_2$ concentrations (ppm by volume, ppmv). Data for 29 collections of leaves growing at different $\mathrm{CO}_2$ concentrations are in the text file \begin{rline}co2.txt\end{rline}.
+
+You will perform a simple linear regression using \R. Load the data file \begin{rline}co2.csv\end{rline} into the R object `stomata`. Note that throughout it is \textbf{CO} --- \textbf{cee-oh} --- 2 and not \textbf{C0} --- \textbf{cee-zero} --- 2!
+
+<<echo=false,results=hide>>=
+stomata <- read.csv("../00-data-sets/co2.csv")
+@ 
+
+<<results=hide,eval=false>>=
+stomata <- read.csv(file = "co2.csv")
+colnames(stomata)
+str(stomata)
+@
+
+The data contain 29 observations of two variables; \begin{rline}co2\end{rline} is the $\mathrm{CO}_2$ concentration and \begin{rline}sdensity\end{rline} is the stomatal density. The first thing we should do is plot the data:
+
+<<echo=true,eval=true,results=hide>>=
+co2.exp <- expression(CO[2])
+plot(sdensity ~ co2, data = stomata, xlab = co2.exp, ylab = "Stomatal density")
+@
+
+\begin{rline}expression()\end{rline} creates a valid \R expression out of its arguments which \R then interprets rather than literally reproducing the contents as labels. So instead of the label being printed as CO[2], \R interprets the brackets as meaning display this as subscript and formats the text accordingly. \R has very powerful capabilities for displaying complex mathematical notation in plots. The code used to format this in a plot borrows heavily from \LaTeX; see \begin{rline}?plotmath\end{rline} for more information.
+
+Linear models in \R are specified using the \begin{rline}lm()\end{rline} function and a standard formula notation that is used in a range of other R base functions and in many add-on packages:
+\begin{displaymath}
+    response \sim predictor_1 + predictor_2 \ldots + predictor_i
+\end{displaymath}
+To create a linear model of stomatal density as a function of $\mathrm{CO}_2$ type the following:
+
+<<label=model1>>=
+sdens.lm <- lm(sdensity ~ co2, data = stomata)
+summary(sdens.lm)
+@
+
+We then display the ANOVA table for the regression model we just specified. We used the \begin{rline}data\end{rline} argument of \begin{rline}resid()\end{rline} to tell R where to find the variables \begin{rline}sdensity\end{rline} and \begin{rline}co2\end{rline} instead of attaching the co2 data frame to the search path. This ensures that the variables being used are the ones you actually specify. The regression summary provides a succinct description of the model specified:
+\begin{enumerate}
+    \item The call, which describes the model being summarised,
+	\item A description of the distribution of the residuals that allows one to quickly evaluate if these are normally distributed,
+    \item Regression coefficients, standard errors and their associated t-values and significance levels. The stars provide a quick visual guide to the level of significance achieved by each coefficient,
+    \item Finally the residual standard error, the multiple R-squared ($\mathrm{R}^2$), $\mathrm{R}^2$ adjusted for the degrees of freedom, the F statistic for the model and its associated p-value.
+\end{enumerate}
+To display the fitted line from the regression first re-plot the data (you can use the up-cursor to move back through the commands you have previously typed, so you do not need to retype everything):
+
+<<>>=
+plot(sdensity ~ co2, data = stomata, xlab = co2.exp,
+     ylab = "Stomatal density")
+abline(sdens.lm, col = "red")           # plots the fitted line
+@
+
+\begin{rline}abline()\end{rline} is used for drawing lines on plots. It can be used to plot lines that fulfill many functions (we will use it to plot vertical lines on our diagnostics plots later), but when a linear model (of class \begin{rline}lm()\end{rline}) is used as an argument, \begin{rline}abline()\end{rline} extracts the slope and the intercept and plots a line accordingly.
+
+To draw the 95\% confidence limits and prediction intervals we need to make use of the function \begin{rline}predict()\end{rline}. Enter the following code chunk:
+
+<<intervals-plot, echo=false, eval=true, results=hide>>=
+pred.frame <- data.frame(co2 = seq(min(stomata$co2), max(stomata$co2), length = 50))
+pp <- predict(sdens.lm, int = "p", newdata = pred.frame)
+pc <- predict(sdens.lm, int = "c", newdata = pred.frame)
+plot(sdensity ~ co2, data = stomata, xlab = co2.exp,
+     ylab = "Stomatal density", ylim = range(stomata$sdensity, pp))
+matlines(pred.frame$co2, pc, lty = c(1,2,2), col = "blue")
+matlines(pred.frame$co2, pp, lty = c(1,3,3), col = "red")
+@
+
+<<echo=true,eval=false>>=
+<<intervals-plot>>
+identify(stomata$co2, stomata$sdensity)
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Label points on the plot which look like potential outliers or which lie outside the prediction intervals. Remember, after executing the \texttt{identify()} funtion you need to click on the plot window to label points, then right click the plot window to finish. You cannot use the R console to enter further commands until you do so---as indicated by the there not being a prompt ``$>$'' displayed.
+\end{enumerate}
+
+This seems much more complicated than it really needs to be! But this illustrates a number of useful R commands. We want to predict stomatal density over the full range of $\mathrm{CO}_2$, not just the discrete $\mathrm{CO}_2$ values in our data. Also, when we plot lines using \begin{rline}plot(x, y, type = "l")\end{rline} for example, R plots lines between the data points which would result in a cats cradle if the data points are not in order.
+
+First we create a new data frame to hold the $\mathrm{CO}_2$ values we wish to predict stomatal density for. We create a sequence of 50 equally-spaced values ranging from the minimum to the maximum value of $\mathrm{CO}_2$ in our data. We use \begin{rline}predict()\end{rline} to generate the prediction (\begin{rline}int = "p"\end{rline}) and confidence (\begin{rline}int = "c"\end{rline}) values, and instruct R to predict these values for our sequence of $\mathrm{CO}_2$ data. Next comes the familiar plot command where we have added the argument \begin{rline}ylim\end{rline} to make sure the full range of the prediction interval can be plotted. Finally we use \begin{rline}matlines()\end{rline} to plot multiple lines from the provided arguments. Effectively we use \begin{rline}matlines()\end{rline} to plot 3 lines with each call, plotting the confidence interval with dashed blue lines, the prediction interval with dotted red lines and the fitted line (which actually gets plotted twice) in red.`
+
+\subsection{Regression diagnostics}
+Once we have fitted our linear model, we must examine that model to check for the influence of outliers and whether the assumptions of linear least squares are met by our data. The summary output provided a simple look at the distribution of the residuals from the regression, but we can do much better with some graphical displays.
+
+Firstly, we should plot the residuals of the fitted model to look
+for patterns in the data or to assess whether the assumption of normally-distributed errors is maintained. The LOWESS smooth line shows the  patterns in the data.
+
+<<>>=
+plot(fitted(sdens.lm), resid(sdens.lm), main = "Residuals vs Fitted",
+     ylab = "Residuals", xlab = "Fitted values")
+abline(h = 0, lty = "dashed", col = "grey")
+lines(lowess(fitted(sdens.lm), resid(sdens.lm)), col = "red")
+@
+
+Another way of visualising whether the residuals of the models follow a normal distribution is to plot a quantile-quantile or Q-Q plot. The \begin{rline}identify()\end{rline} function allow us to interactively label points in plots. Try the following:
+
+<<eval=false>>=
+co2.resid <- resid(sdens.lm)
+co2.qq <- qqnorm(co2.resid)
+qqline(co2.resid)
+identify(co2.qq)
+@
+
+<<eval=true,echo=false>>=
+co2.resid <- resid(sdens.lm)
+co2.qq <- qqnorm(co2.resid)
+qqline(co2.resid)
+@
+
+After executing the \begin{rline}identify()\end{rline} command above, click with the left mouse button on some of the points in the Q-Q plot. Label those points that deviate somewhat from the 1:1 line in the plot. To finish labelling points press the right mouse button.
+
+The \begin{rline}resid()\end{rline} function is called an \textit{extractor function} in R. The \begin{rline}lm()\end{rline} model object contains a list of the residuals. We could access it directly by accessing the various components of the \texttt{sdens.lm} object. It is better practice, however, to use extractor functions to get at the parts of larger, more complex objects. Another example of an extractor function is \begin{rline}coef()\end{rline}, which can be used to extract the regression coefficients from an \begin{rline}lm()\end{rline} object.
+
+To generate good predictive model that generalises well, it is important to determine whether the model is being unduly influenced by outlier values. We can look at a number of indicators that can allow us detect outliers that have a high degree of influence; hat values, DFBETAS and Cook's distance.
+
+A useful guide for identifying outliers is to look for observations that have a hat value that is 2 or 3 times the average hat value. Enter the following commands and identify which leaves lie beyond these thresholds.
+
+<<eval=false>>=
+plot(hatvalues(sdens.lm), type = "h", main = "Leverage: hat values",
+      xlab = "Observation", ylab = "Leverage")
+abline(h = c(2,3) * 2/29, lty = 2)
+identify(hatvalues(sdens.lm))
+@
+<<echo=false,eval=true>>=
+plot(hatvalues(sdens.lm), type = "h", main = "Leverage: hat values",
+      xlab = "Observation", ylab = "Leverage")
+abline(h = c(2,3) * 2/29, lty = 2)
+@
+
+We use the \begin{rline}hatvalues()\end{rline} function to calculate the hat values which we then plot as \textit{histogram like} bars using the argument \begin{rline}type = "h"\end{rline}. \begin{rline}abline()\end{rline} is used to plot the horizontal lines at the given heights, \begin{rline}h\end{rline}.
+
+We can also display the DFBETAS for the model. Here, you should identify those observations that lie at a distance from the main cluster of  points.
+
+<<eval=false>>=
+plot(dfbetas(sdens.lm), type = "h", main = "Leverage: Dfbetas",
+      xlab = "Observation", ylab = "Dfbetas")
+abline(h = 0, col = "grey")
+identify(dfbetas(sdens.lm))
+@
+<<echo=false,eval=true>>=
+plot(dfbetas(sdens.lm), type = "h", main = "Leverage: Dfbetas",
+      xlab = "Observation", ylab = "Dfbetas")
+abline(h = 0, col = "grey")
+@
+
+In a similar theme we can plot the Cook's distances for each observation. Again, identify those leaves that have a Cook's distance greater  than the threshold value.
+
+<<eval=false>>=
+plot(cooks.distance(sdens.lm), type = "h", ylim = c(0, 1),
+      main = "Cook's distance", xlab = "Observation",
+      ylab = "Cook's distance")
+abline(h = 4/27, lty = 2) # 4/(n-k-1) n = 29, k = 1 parameter in model
+identify(cooks.distance(sdens.lm))
+@
+
+<<echo=false,eval=true>>=
+plot(cooks.distance(sdens.lm), type = "h", ylim = c(0, 1),
+      main = "Cook's distance", xlab = "Observation",
+      ylab = "Cook's distance")
+abline(h = 4/27, lty = 2) # 4/(n-k-1) n = 29, k = 1 parameter in model
+@
+
+We use $4/27$ from the formulae $4/(n-k-1)$, where $n$ = 29, $k$ = 1 parameter model.
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item By now you should have enough information to answer the following question. Which of the leaves is a potential outlier?
+\end{enumerate}
+
+Having done all the hard work of generating regression diagnostic plots in R, it is worth noting that R comes with a plot method for linear models that produces some of the diagnostic plots we produced by hand. The following code produces a 2 x 2 grid of plots on the open device (window), draws the diagnostic plots and then resets the plotting region to 1 x 1.
+
+<<echo=true,eval=true,results=hide>>=
+layout(matrix(1:4, ncol = 2))
+plot(sdens.lm, ask = FALSE)
+layout(1)
+@
+
+To find out more about the lower left plot, look at the help for \begin{rline}plot.lm()\end{rline} by typing \begin{rline}?plot.lm\end{rline} at the prompt.
+
+In the \begin{rline}co2.txt\end{rline} data file one of the leaves (leaf 17, $\mathrm{CO}_2$ of 206 ppmv) is a full-glacial age sample matched against the Byrd ice-core $\mathrm{CO}_2$ measurements for 15 800--18 900 years BP. Generate another linear regression model of stomatal density against $\mathrm{CO}_2$ concentration, this time omitting leaf 17 from the analysis. Look to see if the intercepts and slopes differ from those obtained above, and take note of the standard errors of the regression coefficients.
+
+<<results=hide>>=
+sdens.lm2 <- lm(sdensity ~ co2, data = stomata[-17,])
+summary(sdens.lm2)
+@
+
+Refer back to the instructions on how to plot the data with a fitted line if you wish to visually inspect the differences in the two models.
+
+\section{Multiple linear regression}
+So far we have seen how to fit simple linear regression models with a single predictor variable and a single response variable. In this section of the practical we will take a look at multiple regression models in R, where we have a single response variable with two or more predictor variables we wish to model.
+
+The data we'll be using are from Loyn (1987), wherein 56 forest patches in southeastern Victoria, Australia, were selected and the abundance of birds within each patch was related to siz predictor variables:
+
+\begin{enumerate}
+\item \texttt{area}: patch area (ha)
+\item \texttt{dist2Patch}: distance to the nearest patch (km)
+\item \texttt{dist2LargePatch}: distance to the nearest large patch (km)
+\item \texttt{grazing}: grazing stock on a 1--5 ordinal scale (light--heavy)
+\item \texttt{altitude}: altitude of patch (m)
+\item \texttt{yearIsolated}: year of isolation
+\end{enumerate}
+
+Three of these variables (\texttt{area}, \texttt{dist2Patch}, and \texttt{dist2LargePatch}) are higly skewed and hence we apply a $\log_{10}$ transformation.
+
+You will use \R to explore these data and to fit a multiple linear regression model of the form:
+
+\begin{displaymath}
+    y = \beta_0 + \beta_1x_1 + \beta_2x_2 + \ldots + \beta_mx_m
+\end{displaymath}
+where $x_1 \ldots x_m$ are our predictor variables and $\beta_0$, $\beta_1 \ldots \beta_m$ are parameters that we wish to estimate for combinations of $y$ and $x_m$.
+
+Read in the data from \texttt{loyn.csv}, display it and plot a scatter-plot matrix of the variables using the following commands.
+
+<<echo=false,results=hide>>=
+birds <- read.csv("../00-data-sets/loyn.csv")
+@ 
+
+<<echo=true,eval=false,results=hide>>=
+birds <- read.csv("loyn.csv")
+birds
+plot(birds, gap = 0)
+@
+
+It is useful to have a numerical summary of the information shown in a scatter-plot matrix, and it is easy to generate a correlation matrix using the R function \begin{rline}cor()\end{rline}. \begin{rline}cor()\end{rline} does not generate p-values or significance values for the correlations however, and the associated function \begin{rline}cor.test()\end{rline} only works on two vectors, x and y at a time. Our function\footnote{The \begin{rline}corProb()\end{rline} function is based on code published on the R-Help mailing list by Bill Venables which has been modified to provide a print method.} \begin{rline}corProb()\end{rline} will generate the lower triangle of a correlation matrix with associated p-values shown in the upper triangle. Load the \begin{rline}corProb()\end{rline} function and generate the correlation matrix.
+
+<<echo=false,results=hide>>=
+source("../00-data-sets/corProb.R")
+@ 
+
+<<eval=false>>=
+source("corProb.R")
+@
+
+Then we use it by passing in the \begin{rline}birds\end{rline} data frame
+
+<<>>=
+corProb(birds)
+@
+
+Multiple linear regression models are fitted in R in the same way as the simple linear regression model you looked at earlier. To fit the full multiple regression model using all seven predictors use the following commands.
+
+<<>>=
+birds.lm <- lm(abundance ~ log10(area) + log10(dist2Patch) + log10(dist2LargePatch) +
+               grazing + altitude + yearIsolated, data = birds)
+@
+
+Note that the \texttt{log10()} parts are applying the transformation to the variables as part of the model fitting. This transformation is part of the model fit now so when predicting for new data those data will automatically get the same transformation applied to them. Look at the model summary:
+
+<<echo=true,eval=true>>=
+summary(birds.lm)
+@
+
+Note the values for $\mathrm{R^2}$, adjusted-$\mathrm{R^2}$, $F$ and its $p$ for this, the full model.
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item What do these results suggest to you about the relationship between the predictor variables and the abundance of birds in forest patches?
+\end{enumerate}
+
+We can also produce an ANOVA table using R's \begin{rline}anova()\end{rline} function, which shows the marginal effect of adding each variable in turn to the model. Each variable is added to the model in the order that you specified in the right-hand side of the model equation or in the order they appear in the data frame or matrix from which the predictors were derived.
+
+<<echo=true,eval=true>>=
+anova(birds.lm)
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item What do these results suggest to you about the relationship between the predictor variables and the abundance of birds in forest patches?
+\item Which variables are candidates for removal?
+\end{enumerate}
+
+We can remove seemingly non-informative variables by updating the model fit and indicating which variables are to be removed from the model. Here we remove some variables and then generate the model summary and the ANOVA table coparing the full model (\texttt{birds.lm}) with the simplified model (\texttt{birds2.lm})
+
+<<echo=true,eval=true>>=
+birds2.lm <- update(birds.lm, . ~ . - log10(dist2Patch) - log10(dist2LargePatch) -
+                    altitude)
+summary(birds2.lm)
+anova(birds.lm, birds2.lm)
+@
+
+\subsection{Interaction terms}
+Thus far we have only considered the unique contributions of each variable to the modelling of bird abundance. Perhaps the effect on bird abundance of one variable depends on the value(s) of one or more other variables in the model. We can account for such \textit{interactions} between variables via interaction terms. In the next code chunk we add 2-way (2nd order) and the 3-way (3rd-order) interactions between variables in the simplified model.
+
+<<echo=true,eval=true>>=
+birds3.lm <- update(birds2.lm, . ~ . + log10(area):grazing + log10(area):yearIsolated +
+                    grazing:yearIsolated + log10(area):grazing:yearIsolated)
+anova(birds2.lm, birds3.lm)
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Do we need the 3-way interaction?
+\end{enumerate}
+
+What about the 2-way terms?
+
+<<echo=true,eval=true>>=
+birds4.lm <- update(birds3.lm, . ~ . - log10(area):grazing:yearIsolated)
+anova(birds3.lm, birds4.lm)
+drop1(birds4.lm)
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Do we need any of the 2-way interactions?
+\end{enumerate}
+
+\end{document}
