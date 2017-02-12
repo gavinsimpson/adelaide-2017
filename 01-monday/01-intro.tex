@@ -28,6 +28,15 @@
 \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
 \newif\ifbibliography
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight0.8\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
 
 % Prevent slide breaks in the middle of a paragraph:
 \widowpenalties 1 10000
@@ -82,6 +91,167 @@
 
 \begin{document}
 \frame{\titlepage}
+
+\section{Introduction}\label{introduction}
+
+\begin{frame}{Who am I?}
+
+\columnsbegin
+\column{0.6\linewidth}
+
+\begin{itemize}
+\tightlist
+\item
+  Ecologist \& limnologist
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Use palaeo as a tool
+  \end{itemize}
+\item
+  Statistical ecologist
+\item
+  Not an ecological statistician
+\item
+  Used to teach the ``ECRC Numerical Course'' with John Birks
+\item
+  Now a research scientist at IECS, U Regina
+\item
+  Interested in
+
+  \begin{itemize}
+  \tightlist
+  \item
+    ecosystem response to environmental change
+  \item
+    community dynamics
+  \item
+    effects of N deposition on remote oligotrophic lakes
+  \item
+    effects of nutrient enrichment on prarie lakes
+  \item
+    C \& N dynamics
+  \item
+    statistical modelling
+  \end{itemize}
+\end{itemize}
+
+\column{0.4\linewidth}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=1.00000\textwidth]{me_wet_greenland.jpg}
+\caption{Me on a miserable summers day in Greenland}
+\end{figure}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}{Philosophy}
+
+We want to use methods that are
+
+\begin{itemize}
+\tightlist
+\item
+  ecologically plausible
+\item
+  simple without being too simple
+\item
+  not unduly complex
+\end{itemize}
+
+John Birks' legacy on quantiative palaeoecology
+
+Yet as a field we haven't moved with the times --- squandering John's
+legacy
+
+What was simple / not too complex 20 years ago may not be the best
+``simple-non-complex'' way now
+
+As a field we are crap at training
+
+\end{frame}
+
+\begin{frame}{Reproducibility}
+
+Who here could reproduce the analyses for their
+
+\begin{itemize}
+\tightlist
+\item
+  terminal degree disertation?
+\item
+  last paper?
+\end{itemize}
+
+For a worrying example, see Richard Telford's blog for his ongoing
+attempts to reproduce results from Lake Żabińskie (LaroqueTobler et al,
+2015, \emph{QSR} \textbf{111} 35--50)
+
+\href{https://quantpalaeo.wordpress.com/tag/larocque-tobler-et-al-2015/}{}
+
+\end{frame}
+
+\begin{frame}{Schedule}
+
+Lectures 0930--1200 Lunch 1200-1300 Computers 1300--you give up
+
+\begin{itemize}
+\tightlist
+\item
+  Monday
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Intro to R
+  \item
+    Linear models
+  \end{itemize}
+\item
+  Tuesday
+
+  \begin{itemize}
+  \tightlist
+  \item
+    GLMs
+  \item
+    GAMs
+  \end{itemize}
+\item
+  Wednesday
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Ordination
+  \end{itemize}
+\item
+  Thursday
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Stratigraphic data
+  \item
+    Time series
+  \end{itemize}
+\item
+  Friday
+
+  \begin{itemize}
+  \tightlist
+  \item
+    GLMMs
+  \item
+    Requests from the audience
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
 
 \begin{frame}{Re-use}
 
