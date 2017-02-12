@@ -81,8 +81,14 @@ For a worrying example, see Richard Telford's blog for his ongoing attempts to r
 
 ## Schedule
 
+\columnsbegin
+
+\column{0.5\linewidth}
+
 Lectures 0930--1200
+
 Lunch 1200-1300
+
 Computers 1300--you give up
 
 - Monday
@@ -91,6 +97,9 @@ Computers 1300--you give up
 - Tuesday
     - GLMs
 	- GAMs
+	
+\column{0.5\linewidth}
+
 - Wednesday
     - Ordination
 - Thursday
@@ -99,6 +108,14 @@ Computers 1300--you give up
 - Friday
     - GLMMs
 	- Requests from the audience
+
+\columnsend
+
+## Course materials
+
+All the materials are on GitHub
+
+[github.com/gavinsimpson/adelaide-2017](http://github.com/gavinsimpson/adelaide-2017)
 
 ## Re-use
 
