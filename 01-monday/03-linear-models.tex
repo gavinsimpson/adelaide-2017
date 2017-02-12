@@ -121,6 +121,17 @@
 \newcommand{\centreFigEnd}{\end{figure}}
 %%
 
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}, fontsize=\tiny}
+% make console-output smaller:
+\makeatletter
+\def\verbatim{\tiny\@verbatim \frenchspacing\@vobeyspaces \@xverbatim}
+\makeatother
+\setlength{\parskip}{0pt}
+\setlength{\OuterFrameSep}{-4pt} % was -4pt
+\makeatletter
+\preto{\@verbatim}{\topsep=-10pt \partopsep=-10pt} % were -10pt
+\makeatother
+
 \title{Linear models}
 \author{Gavin L. Simpson}
 \date{February, 2017}
@@ -1545,15 +1556,56 @@ fish is a health concern in the Great Lakes region of the US
 
 \end{frame}
 
-\begin{frame}{Lake trout PCB example}
+\begin{frame}[fragile]{PCBs in Lake Trout}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{laketrout <-}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{"../00-data-sets/laketrout2.csv"}\NormalTok{)}
+\NormalTok{## gets rid of a very small pcb value and a length 0 fish}
+\NormalTok{laketrout <-}\StringTok{ }\KeywordTok{with}\NormalTok{(laketrout, laketrout[pcb>}\KeywordTok{exp}\NormalTok{(-}\DecValTok{2}\NormalTok{) &}\StringTok{ }\NormalTok{length>}\DecValTok{0}\NormalTok{, ])}
+\KeywordTok{ggplot}\NormalTok{(laketrout, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =} \NormalTok{length, }\DataTypeTok{y =} \KeywordTok{log}\NormalTok{(pcb))) +}
+\StringTok{    }\KeywordTok{geom_point}\NormalTok{() +}
+\StringTok{    }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{colour =} \StringTok{"forestgreen"}\NormalTok{, }\DataTypeTok{se =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{size =} \FloatTok{1.5}\NormalTok{) +}
+\StringTok{    }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{method =} \StringTok{"lm"}\NormalTok{, }\DataTypeTok{colour =} \StringTok{"red"}\NormalTok{, }\DataTypeTok{se =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{size =} \FloatTok{1.5}\NormalTok{) +}
+\StringTok{    }\KeywordTok{theme_bw}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.6\textwidth]{03-linear-models_files/figure-beamer/lake-trout-0-1} \end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]{Lake trout PCB example}
 
 \scriptsize
+
+\begin{verbatim}
+
+Call:
+lm(formula = log(pcb) ~ length, data = laketrout)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.74263 -0.52741 -0.06745  0.40549  2.47294 
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -2.132082   0.165622  -12.87   <2e-16 ***
+length       0.123398   0.006602   18.69   <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.7673 on 629 degrees of freedom
+  (15 observations deleted due to missingness)
+Multiple R-squared:  0.3571,    Adjusted R-squared:  0.3561 
+F-statistic: 349.4 on 1 and 629 DF,  p-value: < 2.2e-16
+\end{verbatim}
 
 \normalsize
 
 \end{frame}
 
-\begin{frame}{Lake trout PCB example}
+\begin{frame}[fragile]{Lake trout PCB example}
 
 \begin{itemize}
 \tightlist
@@ -1573,6 +1625,11 @@ fish is a health concern in the Great Lakes region of the US
 \end{itemize}
 
 \scriptsize
+
+\begin{verbatim}
+(Intercept)      length 
+ -2.1320818   0.1233985 
+\end{verbatim}
 
 \normalsize
 
@@ -1595,9 +1652,20 @@ fish is a health concern in the Great Lakes region of the US
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{#anova(pcb.m1)}
+\KeywordTok{anova}\NormalTok{(pcb.m1)}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{verbatim}
+Analysis of Variance Table
+
+Response: log(pcb)
+           Df Sum Sq Mean Sq F value    Pr(>F)    
+length      1 205.70 205.703   349.4 < 2.2e-16 ***
+Residuals 629 370.31   0.589                      
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
 
 \normalsize
 

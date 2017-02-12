@@ -1126,15 +1126,17 @@ Human exposure to polychlorinated biphenyls (PCBs) from consumption of fish is a
 - Can size of fish be used to infer PCB tissue concentration?
 - Data are PCB concentrations in lake trout (1974--2003)
 
-```{r lake-trout-0, echo=FALSE, crop.plot=TRUE, fig.width = 7, out.width = "0.6\\textwidth", tidy = FALSE}
-#laketrout <- read.csv("./R/laketrout2.csv")
+## PCBs in Lake Trout
+
+```{r lake-trout-0, echo=TRUE, fig.width = 7, out.width = "0.6\\textwidth", tidy = FALSE}
+laketrout <- read.csv("../00-data-sets/laketrout2.csv")
 ## gets rid of a very small pcb value and a length 0 fish
-#laketrout <- with(laketrout, laketrout[pcb>exp(-2) & length>0, ])
-#p <- ggplot(laketrout, aes(x = length, y = log(pcb))) +
-#    geom_point() +
-#        geom_smooth(colour = "forestgreen", se = FALSE, size = 1.5) +
-#            geom_smooth(method = "lm", colour = "red", se = FALSE, size = 1.5) #+ theme_bw()
-#p
+laketrout <- with(laketrout, laketrout[pcb>exp(-2) & length>0, ])
+ggplot(laketrout, aes(x = length, y = log(pcb))) +
+    geom_point() +
+    geom_smooth(colour = "forestgreen", se = FALSE, size = 1.5) +
+    geom_smooth(method = "lm", colour = "red", se = FALSE, size = 1.5) +
+    theme_bw()
 ```
 
 ## Lake trout PCB example
@@ -1142,8 +1144,8 @@ Human exposure to polychlorinated biphenyls (PCBs) from consumption of fish is a
 \scriptsize
 
 ```{r lake-trout-1, echo=FALSE}
-#pcb.m1 <- lm(log(pcb) ~ length, data = laketrout)
-#summary(pcb.m1)
+pcb.m1 <- lm(log(pcb) ~ length, data = laketrout)
+summary(pcb.m1)
 ```
 \normalsize
 
@@ -1159,7 +1161,7 @@ Human exposure to polychlorinated biphenyls (PCBs) from consumption of fish is a
 \scriptsize
 
 ```{r lake-trout-2}
-#coef(pcb.m1)
+coef(pcb.m1)
 ```
 \normalsize
 
@@ -1171,7 +1173,7 @@ Human exposure to polychlorinated biphenyls (PCBs) from consumption of fish is a
 
 \scriptsize
 ```{r lake-trout-3, echo=TRUE}
-#anova(pcb.m1)
+anova(pcb.m1)
 ```
 \normalsize
 
