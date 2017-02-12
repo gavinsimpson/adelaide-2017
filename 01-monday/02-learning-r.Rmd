@@ -21,8 +21,13 @@ output:
 
 ```{r setup-options, echo = FALSE, results = "hide", message = FALSE}
 knitr::opts_chunk$set(comment=NA, prompt=TRUE, fig.align = "center", out.width = "0.7\\linewidth",
-                      echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE)
+                      echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE,
+                      fig.show="hold")
 knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
+```
+
+```{r packages, echo = FALSE, results = "hide"}
+library("ggplot2")
 ```
 
 # Introduction to R
@@ -31,14 +36,14 @@ knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
 
 * R was designed from the ground up as a language for data analysis
 * It is free and open source, and available on all the major OSes
-* Huge package ecosystem (> 10,000) covering bewildering array of statistical methods, data visualisations, data import and manipulation
+* Huge package ecosystem (> 10,000) covering bewildering array of statistical methods, data visualizations, data import and manipulation
 * Cutting edge; R is used by thousands of statisticians & R code or a package often accompanies papers developing new methods
 * For the most part, a great community providing help, blog posts etc
 
 ## What is R?
 
 - The S statistical language was started at Bell Labs on May 5, 1976
-- A system for general data analysis jobs that could replace the *ad hoc* creation of Fortran applications
+- A system for general data analysis jobs that could replace the *ad hoc* creation of FORTRAN applications
 - The S language was licensed by Insightful Corporation for use in their *S-PLUS* software
 - In 2004 Insightful bought the S language from Lucent (formerly AT\&T and before that Bell Labs)
 - Robert Gentleman and Ross Ihaka designed a language that was compatible with S but which worked in a different way internally
@@ -344,6 +349,483 @@ str(df[, "x"])                          # drops the enpty dimension
 ```
 
 \columnsend
+
+# Plotting
+
+## Plotting
+
+R is good at plotting; in-built functionality for producing publication-ready figures in a range of formats
+
+Three main plotting paradigms in the R ecosystem
+
+1. Base graphics
+2. **lattice** package
+3. **ggplot2** package
+
+The latter, **lattice** and **ggplot**, both use the underlying **grid** primitve graphics toolkit
+
+In general, R's graphics are like drawing with pen on paper; once you draw anything that sheet of paper is no-longer pristine and you can't erase anything you have drawn
+
+## Plotting using base graphics
+
+\columnsbegin
+\column{0.5\linewidth}
+
+Standard plotting command is \texttt{plot()}
+
+Takes one or two arguments of coordinates
+
+By default draws a scatterplot
+
+Vast array of parameters to alter look of plots; see `?par`
+
+Best results often come from building a plot up from bits
+
+\column{0.5\textwidth}
+
+```{r base-plot-1, crop.plot=TRUE, out.width="0.95\\linewidth", fig.width=6, fig.height=6}
+x <- rnorm(1000)
+y <- rnorm(1000)
+plot(x, y)
+```
+
+\columnsend
+
+## Plotting using base graphics
+
+\columnsbegin
+\column{0.6\linewidth}
+
+- The `type` argument changes the type of plotting done
+    - `"p"` draws points
+    - `"l"` draws lines
+    - `"o"` draws lines and points over-plotted
+    - `"b"` draws lines and points
+    - `"h"` draws histogram-like bars
+    - `"s"` draws stepped lines
+- `main` control the title of the plot
+- `xlab` & `ylab` control axis labels
+
+```{r base-plot-2, crop.plot=TRUE, out.width="0.6\\linewidth", fig.width=6, fig.height=12, fig.show="hide"}
+x <- 1:100
+y <- cumsum(rnorm(100))
+layout(matrix(1:2, ncol = 1))
+plot(x, y, type = "b", main = "a)", xlab = "Time", ylab = "Random Walk")
+plot(x, y, type = "s", main = "b)", xlab = "Time", ylab = "Random Walk")
+layout(1)
+```
+
+\column{0.4\textwidth}
+
+```{r base-plot-2a, ref.label="base-plot-2", crop.plot=TRUE, out.width="0.6\\linewidth", fig.width=6, fig.height=12, echo=FALSE, fig.show="hold"}
+```
+
+\columnsend
+
+## Plotting using base graphics
+
+\columnsbegin
+\column{0.6\linewidth}
+
+- `pch` controls the plotting character
+- `cex` controls the size of the character
+- `col` controls colour
+- `axes` logical; should axes be drawn
+- `ann` logical; should the plot be annotated
+- `axis()`, `title()`, `box()` used to build up plotting
+- Allows finer control
+
+```{r base-plot-3, crop.plot=TRUE, out.width="0.6\\linewidth", fig.width=6, fig.height=12, fig.show="hide"}
+x <- rnorm(100)
+y <- rnorm(100)
+layout(matrix(1:2, ncol = 1))
+plot(x, y, main = "cex = 1.5, pch = 16", cex = 1.5, pch = 19, col = "red")
+plot(x, y, cex = 1.5, pch = 19, col = "red", axes = FALSE, ann = FALSE)
+axis(side = 1)
+axis(side = 2)
+title(main = "cex = 1.5, pch = 16", xlab = "x", ylab = "y")
+box()
+layout(1)
+```
+
+\column{0.4\textwidth}
+
+```{r base-plot-3a, ref.label="base-plot-3", crop.plot=TRUE, out.width="0.6\\linewidth", fig.width=6, fig.height=12, echo=FALSE, fig.show="hold"}
+```
+
+\columnsend
+
+## Plotting using base graphics
+
+\columnsbegin
+\column{0.6\linewidth}
+
+- `hist()` draws histograms
+- `boxplot()` draws boxplots
+- `"lwd"` controls the line width
+- `"lty"` controls the line type
+- `lines()` used to add lines to an existing plot
+- Also `points()`
+
+```{r base-plot-4, crop.plot=TRUE, out.width="0.6\\linewidth", fig.width=6, fig.height=12, fig.show="hide"}
+x <- rnorm(100)
+grps <- factor(sample(LETTERS[1:4], 100, replace = TRUE))
+layout(matrix(1:2, ncol = 1))
+dens <-density(x)
+hist(x, freq = FALSE)
+lines(dens, col = "red", lwd = 2, lty = "dashed")
+boxplot(x ~ grps)
+layout(1)
+```
+
+\column{0.4\textwidth}
+
+```{r base-plot-4a, ref.label="base-plot-4", crop.plot=TRUE, out.width="0.6\\linewidth", fig.width=6, fig.height=12, echo=FALSE, fig.show="hold"}
+```
+
+\columnsend
+
+## Plotting device regions and margins
+
+```{r device-regions, crop.plot=TRUE, out.width="0.75\\linewidth", fig.width=12, fig.height=7, echo=FALSE}
+op <- par()
+par(oma=rep(3, 4), bg="grey80")
+plot(c(0, 1), c(0, 1), type="n", ann=FALSE, axes=FALSE)
+box("outer", col="grey")
+# set clipping to figure region
+par(xpd=TRUE)
+# deliberately draw a stupidly large rectangle
+rect(-1, -1, 2, 2, col="grey90")
+box("figure")
+# set clipping back to plot region
+par(xpd=FALSE)
+# deliberately draw a stupidly large rectangle
+rect(-1, -1, 2, 2, col="grey80")
+box("plot", lty="dashed")
+text(.5, .5, "Plot Region")
+mtext("Figure Region", side=3, line=2)
+for (i in 1:4) {
+    mtext(paste("Outer margin", i), side=i, line=1, outer=TRUE)
+}
+par(op)
+```
+
+## Plotting device regions and margins
+
+\columnsbegin
+\column{0.6\linewidth}
+
+- Control the size of margins using several parameters
+    - `mar` --- set margins in terms of number of lines of text
+    - `mai` --- set margins in terms of number of inches
+- Specify as a vector of length 4 --- `mar = c(5,4,4,2) + 0.1)`
+- The ordering is Bottom, Left, Top, Right
+- The outer margin is controlled via parameter `oma` and `omi`, just like `mar`
+- By default, there is no outer margin --- `oma = c(0,0,0,0)`
+
+\column{0.4\linewidth}
+
+```{r margins-plot, fig.show="hide"}
+x <- runif(100)
+y <- 4 + (2.1 * x) + rnorm(100, 0, 3)
+op <- par(mar = c(4,4,4,4) + 0.1)
+plot(y ~ x)
+op <- par(op)
+
+x <- runif(100)
+y <- 4 + (2.1 * x) + rnorm(100, 0, 3)
+op <- par(mar = c(4,4,4,4) + 0.1, oma = rep(2,4))
+plot(y ~ x)
+op <- par(op)
+```
+
+\columnsend
+
+## Setting graphical parameters
+
+- Base graphic are controlled by a large number of plotting graphical parameters
+- These are detailed in the help page `?par`
+- Graphical parameters are changed using the `par()` function and some may be changed within plotting calls
+- To avoid getting into a muddle, when changing par you should
+    - Store the defaults
+    - Change your parameters as required
+    - When finished the current plot, reset the parameters
+- The first two can be done with a single R call
+
+```{r setting-par, fig.show="hide"}
+## Store defaults in 'op' and change current parameters
+op <- par(las = 2, mar = rep(4, 4), oma = c(1,3,4,2), cex.main = 2)
+plot(1:10) # plot something
+par(op)    # reset
+```
+
+## Plotting on multiple device regions
+
+```{r multiple-regions, crop.plot=TRUE, out.width="0.4\\linewidth", fig.width=6, fig.height=8, echo=FALSE}
+op <- par()
+par(oma=rep(3, 4), mfrow=c(3,2), bg="grey80")
+for (i in 1:6) {
+    if (i == 3) {
+      omar <- par(mar=c(2, 2, 2, 1))
+      plot(c(0, 1), c(0, 1), type="n", ann=FALSE, axes=FALSE)
+      par(xpd=TRUE)
+      rect(-1, -1, 2, 2, col="grey90")
+      box("figure")
+      par(xpd=FALSE)
+      rect(-1, -1, 2, 2, col="grey80")
+      box("plot", lty="dashed")
+      text(.5, .5, "Current Plot Region", cex=1.5)
+      mtext("Current Figure Region", side=3)
+      par(omar)
+    } else {
+      omar <- par(mar=rep(0, 4))
+      plot(c(0, 1), c(0, 1), type="n", ann=FALSE, axes=FALSE)
+      par(xpd=TRUE)
+      rect(-1, -1, 2, 2, col="grey90")
+      box("figure")
+      text(.5, .5, paste("Figure", i), cex=1.5)
+      par(omar)
+    }
+}
+box("outer", col="grey")
+for (i in 1:4) {
+    mtext(paste("Outer margin", i), side=i, line=1, outer=TRUE)
+}
+par(op)
+```
+
+## Plotting on multiple device regions
+
+\columnsbegin
+\column{0.6\linewidth}
+
+Several ways to split a region into multiple plotting regions
+
+- Graphical parameters `mfrow` & `mfcol`
+- The `layout()` function
+- The `split.screen()` function
+
+\column{0.4\linewidth}
+
+```{r mfrow, crop.plot=TRUE, out.width="\\linewidth", fig.width=8, fig.height=8, fig.show="hold"}
+op <- par(mfrow = c(2,2))
+plot(1:10)
+plot(1:10)
+plot(1:10)
+plot(1:10)
+par(op)
+```
+\columnsend
+
+## Plotting on multiple device regions
+
+\columnsbegin
+\column{0.6\linewidth}
+
+`layout()` allows you to
+
+- break the device into multiple reqions with individual regions not tied to a single row or column
+- specify where each plot should go via an ID
+
+Previous figure could have been produced using `layout(matrix(1:4, ncol = 2, byrow = TRUE))`
+
+Here, we allow the whole first row to be occupied by region 1
+
+\column{0.4\linewidth}
+
+```{r layout, crop.plot=TRUE, out.width="\\linewidth", fig.width=8, fig.height=8, fig.show="hold"}
+layout(matrix(c(1,1,2,3), ncol = 2, byrow = TRUE))
+plot(1:10)
+plot(1:10)
+plot(1:10)
+layout(1)
+```
+\columnsend
+
+# ggplot
+
+## ggplot
+
+\columnsbegin
+\column{0.6\linewidth}
+
+\alert{ggplot2} is what all the cool, young kids are using
+
+High-level plotting package like Lattice, but designed for ease of use
+
+Based on the Leland Wilkinson's *Grammar of Graphics*
+
+Three key principles
+
+- a tidy data structure
+- map data to plot features --- \alert{aesthetics}
+- display data using geometric objects --- \alert{geoms}
+
+Plots are built up in layers, composed with `+`
+
+\column{0.4\linewidth}
+
+```{r ggplot-1, out.width="\\linewidth", fig.width=8, fig.height=8, fig.show="hold"}
+df <- data.frame(x = 1:100, y = cumsum(rnorm(100)))
+ggplot(df, aes(x = x, y = y)) +
+    geom_point() +
+    geom_smooth(span = 0.3)
+```
+\columnsend
+
+## ggplot --- mapping & aesthetics
+
+\columnsbegin
+\column{0.6\linewidth}
+
+Variables in the data object are *mapped* to aesthetics that you perceive on the plot
+
+Commonly used aesthetics are
+
+- `x` and `y`
+- `color` (or `colour`)
+- `shape`
+- `size`
+- `fill` (for  anything covering an area, not points)
+
+Specified via the `aes()` function
+
+**ggplot** handles the creation of legends (keys) for you
+
+\column{0.4\linewidth}
+
+```{r ggplot-2, out.width="\\linewidth", fig.width=9, fig.height=8, fig.show="hold"}
+data(diamonds)
+set.seed(1410)
+dsmall <- diamonds[sample(nrow(diamonds), 100), ]
+ggplot(dsmall, aes(x = carat, y = price, colour = color, shape = cut)) +
+    geom_point()
+```
+\columnsend
+
+## ggplot --- geoms; geometric objects
+
+Geometric objects control the way the data are represented on the plot
+
+Common geoms include:
+
+- `geom = "point"` --- scatterplot
+- `geom = "smooth"` --- fits a smooth to the data and draws the smooth and its standard error
+- `geom = "boxplot"` --- box plots
+- `geom = "line"` and `geom = "path"` produce line plots. `"line"` produces lines from left to right, whilst `"path"` draws in data order
+- `geom = "histogram"` --- histograms
+- `geom = "freqpoly"` --- frequency polygons
+- `geom = "density"` --- density plots
+- `geom = "bar"` --- bar plots
+
+## ggplot
+
+\columnsbegin
+\column{0.6\linewidth}
+
+If we have grouping variable(s), we can map them to aesthetics or we can \alert{facet} the plot to produce multiple panels
+
+Already seen how mapping works
+
+Here we create a random time series for each of four hypothetical sites
+
+\column{0.4\linewidth}
+
+```{r ggplot-multiple-time-series, out.width="\\linewidth", fig.width=8, fig.height=8, fig.show="hold"}
+set.seed(789)
+dat2 <- data.frame(x = rep(1:1000, 4),
+                   y = cumsum(rnorm(1000*4)),
+                   Site = factor(rep(LETTERS[1:4], each = 1000)))
+ggplot(dat2, aes(x = x, y = y, colour = Site, fill = Site)) +
+    geom_line() + geom_smooth() +
+    labs(x = "Time", y = "Value")
+```
+
+\columnsend
+
+## ggplot --- facetting
+
+\columnsbegin
+\column{0.6\linewidth}
+
+\alert{Facetting} is what **ggplot** calls the process of breaking up data via one or more grouping variable and displaying a panel for each group that shows the data for that group
+
+Two types of facetting
+
+- `facet_wrap()` --- wraps facets into a tabular arrangement
+- `facet_grid()` --- arranges facets by 1 or 2 categorical variables assigned to the rows and columns of the grid
+
+`facet_wrap()` takes a one-sided formula
+
+`facet_grid()` takes a two-sided formula
+
+\column{0.4\linewidth}
+
+```{r ggplot-facet-wrap, out.width="\\linewidth", fig.width=8, fig.height=8, fig.show="hold"}
+ggplot(dat2, aes(x = x, y = y, colour = Site, fill = Site)) +
+    geom_line() + geom_smooth() +
+    labs(x = "Time", y = "Value") +
+    facet_wrap( ~ Site, ncol = 2)
+```
+\columnsend
+
+## ggplot --- facetting
+
+\columnsbegin
+\column{0.6\linewidth}
+
+\alert{Facetting} is what **ggplot** calls the process of breaking up data via one or more grouping variable and displaying a panel for each group that shows the data for that group
+
+Two types of facetting
+
+- `facet_wrap()` --- wraps facets into a tabular arrangement
+- `facet_grid()` --- arranges facets by 1 or 2 categorical variables assigned to the rows and columns of the grid
+
+`facet_wrap()` takes a one-sided formula
+
+`facet_grid()` takes a two-sided formula
+
+\column{0.4\linewidth}
+
+```{r ggplot-facet-grid, out.width="\\linewidth", fig.width=8, fig.height=8, fig.show="hold"}
+ggplot(dat2, aes(x = x, y = y, colour = Site, fill = Site)) +
+    geom_line() + geom_smooth() +
+    labs(x = "Time", y = "Value") +
+    facet_grid(Site ~ .) +
+    theme(legend.position = "top")
+```
+\columnsend
+
+# R package management
+
+## R package management
+
+- CRAN contains hundreds of packages of user-contributed code that you can install from an R session
+- Package installation via function `install.packages()`
+- Packages can be updated via function `updates.packages()`
+- When installing or updating for the first time in a session, R will prompt you to choose a mirror to download from
+- Once a package is installed you need to load it ready for use
+- Load a package from your library using `library()` or `require()`
+- Windows and MacOS have menu items to assist with these operations as does RStudio
+
+```{r pkg-managament, eval=FALSE}
+install.packages("vegan")
+update.packages()
+update.packages(ask = FALSE)
+library("vegan")
+```
+
+## R package management
+
+- It is useful to create your own library for downloaded packages
+- This library will not be overwritten when you install a new version of R
+- To set a directory you have write permissions on as your user library, create a file named `.Renviron` in your home directory
+    - On Windows this is usually
+	    `C:\Documents~and~Settings\username\My~Documents`
+    - On Linux it is `/home/user/`
+- To set your user library to stated directory, add following to your `.Renviron`
+    - On Windows if installed R to `C:\R` add: `R_LIBS=C:/R/myRlib`
+    - On Linux, create directory `/home/user/R/libs` say and then add: `R_LIBS=/home/user/R/libs`
 
 ## Re-use
 

@@ -151,7 +151,7 @@
   It is free and open source, and available on all the major OSes
 \item
   Huge package ecosystem (\textgreater{} 10,000) covering bewildering
-  array of statistical methods, data visualisations, data import and
+  array of statistical methods, data visualizations, data import and
   manipulation
 \item
   Cutting edge; R is used by thousands of statisticians \& R code or a
@@ -170,7 +170,7 @@
   The S statistical language was started at Bell Labs on May 5, 1976
 \item
   A system for general data analysis jobs that could replace the
-  \emph{ad hoc} creation of Fortran applications
+  \emph{ad hoc} creation of FORTRAN applications
 \item
   The S language was licensed by Insightful Corporation for use in their
   \emph{S-PLUS} software
@@ -1048,6 +1048,723 @@ to subset a data frame as if it were
 \end{verbatim}
 
 \columnsend
+
+\end{frame}
+
+\section{Plotting}\label{plotting}
+
+\begin{frame}{Plotting}
+
+R is good at plotting; in-built functionality for producing
+publication-ready figures in a range of formats
+
+Three main plotting paradigms in the R ecosystem
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Base graphics
+\item
+  \textbf{lattice} package
+\item
+  \textbf{ggplot2} package
+\end{enumerate}
+
+The latter, \textbf{lattice} and \textbf{ggplot}, both use the
+underlying \textbf{grid} primitve graphics toolkit
+
+In general, R's graphics are like drawing with pen on paper; once you
+draw anything that sheet of paper is no-longer pristine and you can't
+erase anything you have drawn
+
+\end{frame}
+
+\begin{frame}[fragile]{Plotting using base graphics}
+
+\columnsbegin
+\column{0.5\linewidth}
+
+Standard plotting command is \texttt{plot()}
+
+Takes one or two arguments of coordinates
+
+By default draws a scatterplot
+
+Vast array of parameters to alter look of plots; see \texttt{?par}
+
+Best results often come from building a plot up from bits
+
+\column{0.5\textwidth}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x <-}\StringTok{ }\KeywordTok{rnorm}\NormalTok{(}\DecValTok{1000}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{y <-}\StringTok{ }\KeywordTok{rnorm}\NormalTok{(}\DecValTok{1000}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(x, y)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.95\linewidth]{02-learning-r_files/figure-beamer/base-plot-1-1} \end{center}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}[fragile]{Plotting using base graphics}
+
+\columnsbegin
+\column{0.6\linewidth}
+
+\begin{itemize}
+\tightlist
+\item
+  The \texttt{type} argument changes the type of plotting done
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{"p"} draws points
+  \item
+    \texttt{"l"} draws lines
+  \item
+    \texttt{"o"} draws lines and points over-plotted
+  \item
+    \texttt{"b"} draws lines and points
+  \item
+    \texttt{"h"} draws histogram-like bars
+  \item
+    \texttt{"s"} draws stepped lines
+  \end{itemize}
+\item
+  \texttt{main} control the title of the plot
+\item
+  \texttt{xlab} \& \texttt{ylab} control axis labels
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x <-}\StringTok{ }\DecValTok{1}\NormalTok{:}\DecValTok{100}
+\NormalTok{>}\StringTok{ }\NormalTok{y <-}\StringTok{ }\KeywordTok{cumsum}\NormalTok{(}\KeywordTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{))}
+\NormalTok{>}\StringTok{ }\KeywordTok{layout}\NormalTok{(}\KeywordTok{matrix}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{2}\NormalTok{, }\DataTypeTok{ncol =} \DecValTok{1}\NormalTok{))}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(x, y, }\DataTypeTok{type =} \StringTok{"b"}\NormalTok{, }\DataTypeTok{main =} \StringTok{"a)"}\NormalTok{, }\DataTypeTok{xlab =} \StringTok{"Time"}\NormalTok{, }\DataTypeTok{ylab =} \StringTok{"Random Walk"}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(x, y, }\DataTypeTok{type =} \StringTok{"s"}\NormalTok{, }\DataTypeTok{main =} \StringTok{"b)"}\NormalTok{, }\DataTypeTok{xlab =} \StringTok{"Time"}\NormalTok{, }\DataTypeTok{ylab =} \StringTok{"Random Walk"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{layout}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\column{0.4\textwidth}
+
+\begin{center}\includegraphics[width=0.6\linewidth]{02-learning-r_files/figure-beamer/base-plot-2a-1} \end{center}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}[fragile]{Plotting using base graphics}
+
+\columnsbegin
+\column{0.6\linewidth}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{pch} controls the plotting character
+\item
+  \texttt{cex} controls the size of the character
+\item
+  \texttt{col} controls colour
+\item
+  \texttt{axes} logical; should axes be drawn
+\item
+  \texttt{ann} logical; should the plot be annotated
+\item
+  \texttt{axis()}, \texttt{title()}, \texttt{box()} used to build up
+  plotting
+\item
+  Allows finer control
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x <-}\StringTok{ }\KeywordTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{y <-}\StringTok{ }\KeywordTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{layout}\NormalTok{(}\KeywordTok{matrix}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{2}\NormalTok{, }\DataTypeTok{ncol =} \DecValTok{1}\NormalTok{))}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(x, y, }\DataTypeTok{main =} \StringTok{"cex = 1.5, pch = 16"}\NormalTok{, }\DataTypeTok{cex =} \FloatTok{1.5}\NormalTok{, }\DataTypeTok{pch =} \DecValTok{19}\NormalTok{, }\DataTypeTok{col =} \StringTok{"red"}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(x, y, }\DataTypeTok{cex =} \FloatTok{1.5}\NormalTok{, }\DataTypeTok{pch =} \DecValTok{19}\NormalTok{, }\DataTypeTok{col =} \StringTok{"red"}\NormalTok{, }\DataTypeTok{axes =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{ann =} \OtherTok{FALSE}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{axis}\NormalTok{(}\DataTypeTok{side =} \DecValTok{1}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{axis}\NormalTok{(}\DataTypeTok{side =} \DecValTok{2}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{title}\NormalTok{(}\DataTypeTok{main =} \StringTok{"cex = 1.5, pch = 16"}\NormalTok{, }\DataTypeTok{xlab =} \StringTok{"x"}\NormalTok{, }\DataTypeTok{ylab =} \StringTok{"y"}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{box}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{layout}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\column{0.4\textwidth}
+
+\begin{center}\includegraphics[width=0.6\linewidth]{02-learning-r_files/figure-beamer/base-plot-3a-1} \end{center}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}[fragile]{Plotting using base graphics}
+
+\columnsbegin
+\column{0.6\linewidth}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{hist()} draws histograms
+\item
+  \texttt{boxplot()} draws boxplots
+\item
+  \texttt{"lwd"} controls the line width
+\item
+  \texttt{"lty"} controls the line type
+\item
+  \texttt{lines()} used to add lines to an existing plot
+\item
+  Also \texttt{points()}
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x <-}\StringTok{ }\KeywordTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{grps <-}\StringTok{ }\KeywordTok{factor}\NormalTok{(}\KeywordTok{sample}\NormalTok{(LETTERS[}\DecValTok{1}\NormalTok{:}\DecValTok{4}\NormalTok{], }\DecValTok{100}\NormalTok{, }\DataTypeTok{replace =} \OtherTok{TRUE}\NormalTok{))}
+\NormalTok{>}\StringTok{ }\KeywordTok{layout}\NormalTok{(}\KeywordTok{matrix}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{2}\NormalTok{, }\DataTypeTok{ncol =} \DecValTok{1}\NormalTok{))}
+\NormalTok{>}\StringTok{ }\NormalTok{dens <-}\KeywordTok{density}\NormalTok{(x)}
+\NormalTok{>}\StringTok{ }\KeywordTok{hist}\NormalTok{(x, }\DataTypeTok{freq =} \OtherTok{FALSE}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{lines}\NormalTok{(dens, }\DataTypeTok{col =} \StringTok{"red"}\NormalTok{, }\DataTypeTok{lwd =} \DecValTok{2}\NormalTok{, }\DataTypeTok{lty =} \StringTok{"dashed"}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{boxplot}\NormalTok{(x ~}\StringTok{ }\NormalTok{grps)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{layout}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\column{0.4\textwidth}
+
+\begin{center}\includegraphics[width=0.6\linewidth]{02-learning-r_files/figure-beamer/base-plot-4a-1} \end{center}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}{Plotting device regions and margins}
+
+\begin{center}\includegraphics[width=0.75\linewidth]{02-learning-r_files/figure-beamer/device-regions-1} \end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]{Plotting device regions and margins}
+
+\columnsbegin
+\column{0.6\linewidth}
+
+\begin{itemize}
+\tightlist
+\item
+  Control the size of margins using several parameters
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{mar} --- set margins in terms of number of lines of text
+  \item
+    \texttt{mai} --- set margins in terms of number of inches
+  \end{itemize}
+\item
+  Specify as a vector of length 4 ---
+  \texttt{mar\ =\ c(5,4,4,2)\ +\ 0.1)}
+\item
+  The ordering is Bottom, Left, Top, Right
+\item
+  The outer margin is controlled via parameter \texttt{oma} and
+  \texttt{omi}, just like \texttt{mar}
+\item
+  By default, there is no outer margin --- \texttt{oma\ =\ c(0,0,0,0)}
+\end{itemize}
+
+\column{0.4\linewidth}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x <-}\StringTok{ }\KeywordTok{runif}\NormalTok{(}\DecValTok{100}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{y <-}\StringTok{ }\DecValTok{4} \NormalTok{+}\StringTok{ }\NormalTok{(}\FloatTok{2.1} \NormalTok{*}\StringTok{ }\NormalTok{x) +}\StringTok{ }\KeywordTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{3}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{op <-}\StringTok{ }\KeywordTok{par}\NormalTok{(}\DataTypeTok{mar =} \KeywordTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{4}\NormalTok{) +}\StringTok{ }\FloatTok{0.1}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(y ~}\StringTok{ }\NormalTok{x)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{op <-}\StringTok{ }\KeywordTok{par}\NormalTok{(op)}
+\NormalTok{>}\StringTok{ }
+\ErrorTok{>}\StringTok{ }\NormalTok{x <-}\StringTok{ }\KeywordTok{runif}\NormalTok{(}\DecValTok{100}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{y <-}\StringTok{ }\DecValTok{4} \NormalTok{+}\StringTok{ }\NormalTok{(}\FloatTok{2.1} \NormalTok{*}\StringTok{ }\NormalTok{x) +}\StringTok{ }\KeywordTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{3}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{op <-}\StringTok{ }\KeywordTok{par}\NormalTok{(}\DataTypeTok{mar =} \KeywordTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{4}\NormalTok{) +}\StringTok{ }\FloatTok{0.1}\NormalTok{, }\DataTypeTok{oma =} \KeywordTok{rep}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{4}\NormalTok{))}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(y ~}\StringTok{ }\NormalTok{x)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{op <-}\StringTok{ }\KeywordTok{par}\NormalTok{(op)}
+\end{Highlighting}
+\end{Shaded}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}[fragile]{Setting graphical parameters}
+
+\begin{itemize}
+\tightlist
+\item
+  Base graphic are controlled by a large number of plotting graphical
+  parameters
+\item
+  These are detailed in the help page \texttt{?par}
+\item
+  Graphical parameters are changed using the \texttt{par()} function and
+  some may be changed within plotting calls
+\item
+  To avoid getting into a muddle, when changing par you should
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Store the defaults
+  \item
+    Change your parameters as required
+  \item
+    When finished the current plot, reset the parameters
+  \end{itemize}
+\item
+  The first two can be done with a single R call
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{## Store defaults in 'op' and change current parameters}
+\ErrorTok{>}\StringTok{ }\NormalTok{op <-}\StringTok{ }\KeywordTok{par}\NormalTok{(}\DataTypeTok{las =} \DecValTok{2}\NormalTok{, }\DataTypeTok{mar =} \KeywordTok{rep}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{4}\NormalTok{), }\DataTypeTok{oma =} \KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{2}\NormalTok{), }\DataTypeTok{cex.main =} \DecValTok{2}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{10}\NormalTok{) }\CommentTok{# plot something}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{par}\NormalTok{(op)    }\CommentTok{# reset}
+\end{Highlighting}
+\end{Shaded}
+
+\end{frame}
+
+\begin{frame}{Plotting on multiple device regions}
+
+\begin{center}\includegraphics[width=0.4\linewidth]{02-learning-r_files/figure-beamer/multiple-regions-1} \end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]{Plotting on multiple device regions}
+
+\columnsbegin
+\column{0.6\linewidth}
+
+Several ways to split a region into multiple plotting regions
+
+\begin{itemize}
+\tightlist
+\item
+  Graphical parameters \texttt{mfrow} \& \texttt{mfcol}
+\item
+  The \texttt{layout()} function
+\item
+  The \texttt{split.screen()} function
+\end{itemize}
+
+\column{0.4\linewidth}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{op <-}\StringTok{ }\KeywordTok{par}\NormalTok{(}\DataTypeTok{mfrow =} \KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{2}\NormalTok{))}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{10}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{10}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{10}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{10}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{par}\NormalTok{(op)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=\linewidth]{02-learning-r_files/figure-beamer/mfrow-1} \end{center}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}[fragile]{Plotting on multiple device regions}
+
+\columnsbegin
+\column{0.6\linewidth}
+
+\texttt{layout()} allows you to
+
+\begin{itemize}
+\tightlist
+\item
+  break the device into multiple reqions with individual regions not
+  tied to a single row or column
+\item
+  specify where each plot should go via an ID
+\end{itemize}
+
+Previous figure could have been produced using
+\texttt{layout(matrix(1:4,\ ncol\ =\ 2,\ byrow\ =\ TRUE))}
+
+Here, we allow the whole first row to be occupied by region 1
+
+\column{0.4\linewidth}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{layout}\NormalTok{(}\KeywordTok{matrix}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{), }\DataTypeTok{ncol =} \DecValTok{2}\NormalTok{, }\DataTypeTok{byrow =} \OtherTok{TRUE}\NormalTok{))}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{10}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{10}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{plot}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{10}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{layout}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=\linewidth]{02-learning-r_files/figure-beamer/layout-1} \end{center}
+
+\columnsend
+
+\end{frame}
+
+\section{ggplot}\label{ggplot}
+
+\begin{frame}[fragile]{ggplot}
+
+\columnsbegin
+\column{0.6\linewidth}
+
+\alert{ggplot2} is what all the cool, young kids are using
+
+High-level plotting package like Lattice, but designed for ease of use
+
+Based on the Leland Wilkinson's \emph{Grammar of Graphics}
+
+Three key principles
+
+\begin{itemize}
+\tightlist
+\item
+  a tidy data structure
+\item
+  map data to plot features --- \alert{aesthetics}
+\item
+  display data using geometric objects --- \alert{geoms}
+\end{itemize}
+
+Plots are built up in layers, composed with \texttt{+}
+
+\column{0.4\linewidth}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{df <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{x =} \DecValTok{1}\NormalTok{:}\DecValTok{100}\NormalTok{, }\DataTypeTok{y =} \KeywordTok{cumsum}\NormalTok{(}\KeywordTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{)))}
+\NormalTok{>}\StringTok{ }\KeywordTok{ggplot}\NormalTok{(df, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =} \NormalTok{x, }\DataTypeTok{y =} \NormalTok{y)) +}
+\NormalTok{+}\StringTok{     }\KeywordTok{geom_point}\NormalTok{() +}
+\NormalTok{+}\StringTok{     }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{span =} \FloatTok{0.3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=\linewidth]{02-learning-r_files/figure-beamer/ggplot-1-1} \end{center}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}[fragile]{ggplot --- mapping \& aesthetics}
+
+\columnsbegin
+\column{0.6\linewidth}
+
+Variables in the data object are \emph{mapped} to aesthetics that you
+perceive on the plot
+
+Commonly used aesthetics are
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{x} and \texttt{y}
+\item
+  \texttt{color} (or \texttt{colour})
+\item
+  \texttt{shape}
+\item
+  \texttt{size}
+\item
+  \texttt{fill} (for anything covering an area, not points)
+\end{itemize}
+
+Specified via the \texttt{aes()} function
+
+\textbf{ggplot} handles the creation of legends (keys) for you
+
+\column{0.4\linewidth}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{data}\NormalTok{(diamonds)}
+\NormalTok{>}\StringTok{ }\KeywordTok{set.seed}\NormalTok{(}\DecValTok{1410}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{dsmall <-}\StringTok{ }\NormalTok{diamonds[}\KeywordTok{sample}\NormalTok{(}\KeywordTok{nrow}\NormalTok{(diamonds), }\DecValTok{100}\NormalTok{), ]}
+\NormalTok{>}\StringTok{ }\KeywordTok{ggplot}\NormalTok{(dsmall, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =} \NormalTok{carat, }\DataTypeTok{y =} \NormalTok{price, }\DataTypeTok{colour =} \NormalTok{color, }\DataTypeTok{shape =} \NormalTok{cut)) +}
+\NormalTok{+}\StringTok{     }\KeywordTok{geom_point}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=\linewidth]{02-learning-r_files/figure-beamer/ggplot-2-1} \end{center}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}[fragile]{ggplot --- geoms; geometric objects}
+
+Geometric objects control the way the data are represented on the plot
+
+Common geoms include:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{geom\ =\ "point"} --- scatterplot
+\item
+  \texttt{geom\ =\ "smooth"} --- fits a smooth to the data and draws the
+  smooth and its standard error
+\item
+  \texttt{geom\ =\ "boxplot"} --- box plots
+\item
+  \texttt{geom\ =\ "line"} and \texttt{geom\ =\ "path"} produce line
+  plots. \texttt{"line"} produces lines from left to right, whilst
+  \texttt{"path"} draws in data order
+\item
+  \texttt{geom\ =\ "histogram"} --- histograms
+\item
+  \texttt{geom\ =\ "freqpoly"} --- frequency polygons
+\item
+  \texttt{geom\ =\ "density"} --- density plots
+\item
+  \texttt{geom\ =\ "bar"} --- bar plots
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{ggplot}
+
+\columnsbegin
+\column{0.6\linewidth}
+
+If we have grouping variable(s), we can map them to aesthetics or we can
+\alert{facet} the plot to produce multiple panels
+
+Already seen how mapping works
+
+Here we create a random time series for each of four hypothetical sites
+
+\column{0.4\linewidth}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{set.seed}\NormalTok{(}\DecValTok{789}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{dat2 <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{x =} \KeywordTok{rep}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{1000}\NormalTok{, }\DecValTok{4}\NormalTok{),}
+\NormalTok{+}\StringTok{                    }\DataTypeTok{y =} \KeywordTok{cumsum}\NormalTok{(}\KeywordTok{rnorm}\NormalTok{(}\DecValTok{1000}\NormalTok{*}\DecValTok{4}\NormalTok{)),}
+\NormalTok{+}\StringTok{                    }\DataTypeTok{Site =} \KeywordTok{factor}\NormalTok{(}\KeywordTok{rep}\NormalTok{(LETTERS[}\DecValTok{1}\NormalTok{:}\DecValTok{4}\NormalTok{], }\DataTypeTok{each =} \DecValTok{1000}\NormalTok{)))}
+\NormalTok{>}\StringTok{ }\KeywordTok{ggplot}\NormalTok{(dat2, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =} \NormalTok{x, }\DataTypeTok{y =} \NormalTok{y, }\DataTypeTok{colour =} \NormalTok{Site, }\DataTypeTok{fill =} \NormalTok{Site)) +}
+\NormalTok{+}\StringTok{     }\KeywordTok{geom_line}\NormalTok{() +}\StringTok{ }\KeywordTok{geom_smooth}\NormalTok{() +}
+\NormalTok{+}\StringTok{     }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{x =} \StringTok{"Time"}\NormalTok{, }\DataTypeTok{y =} \StringTok{"Value"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=\linewidth]{02-learning-r_files/figure-beamer/ggplot-multiple-time-series-1} \end{center}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}[fragile]{ggplot --- facetting}
+
+\columnsbegin
+\column{0.6\linewidth}
+
+\alert{Facetting} is what \textbf{ggplot} calls the process of breaking
+up data via one or more grouping variable and displaying a panel for
+each group that shows the data for that group
+
+Two types of facetting
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{facet\_wrap()} --- wraps facets into a tabular arrangement
+\item
+  \texttt{facet\_grid()} --- arranges facets by 1 or 2 categorical
+  variables assigned to the rows and columns of the grid
+\end{itemize}
+
+\texttt{facet\_wrap()} takes a one-sided formula
+
+\texttt{facet\_grid()} takes a two-sided formula
+
+\column{0.4\linewidth}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{ggplot}\NormalTok{(dat2, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =} \NormalTok{x, }\DataTypeTok{y =} \NormalTok{y, }\DataTypeTok{colour =} \NormalTok{Site, }\DataTypeTok{fill =} \NormalTok{Site)) +}
+\NormalTok{+}\StringTok{     }\KeywordTok{geom_line}\NormalTok{() +}\StringTok{ }\KeywordTok{geom_smooth}\NormalTok{() +}
+\NormalTok{+}\StringTok{     }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{x =} \StringTok{"Time"}\NormalTok{, }\DataTypeTok{y =} \StringTok{"Value"}\NormalTok{) +}
+\NormalTok{+}\StringTok{     }\KeywordTok{facet_wrap}\NormalTok{( ~}\StringTok{ }\NormalTok{Site, }\DataTypeTok{ncol =} \DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=\linewidth]{02-learning-r_files/figure-beamer/ggplot-facet-wrap-1} \end{center}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}[fragile]{ggplot --- facetting}
+
+\columnsbegin
+\column{0.6\linewidth}
+
+\alert{Facetting} is what \textbf{ggplot} calls the process of breaking
+up data via one or more grouping variable and displaying a panel for
+each group that shows the data for that group
+
+Two types of facetting
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{facet\_wrap()} --- wraps facets into a tabular arrangement
+\item
+  \texttt{facet\_grid()} --- arranges facets by 1 or 2 categorical
+  variables assigned to the rows and columns of the grid
+\end{itemize}
+
+\texttt{facet\_wrap()} takes a one-sided formula
+
+\texttt{facet\_grid()} takes a two-sided formula
+
+\column{0.4\linewidth}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{ggplot}\NormalTok{(dat2, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =} \NormalTok{x, }\DataTypeTok{y =} \NormalTok{y, }\DataTypeTok{colour =} \NormalTok{Site, }\DataTypeTok{fill =} \NormalTok{Site)) +}
+\NormalTok{+}\StringTok{     }\KeywordTok{geom_line}\NormalTok{() +}\StringTok{ }\KeywordTok{geom_smooth}\NormalTok{() +}
+\NormalTok{+}\StringTok{     }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{x =} \StringTok{"Time"}\NormalTok{, }\DataTypeTok{y =} \StringTok{"Value"}\NormalTok{) +}
+\NormalTok{+}\StringTok{     }\KeywordTok{facet_grid}\NormalTok{(Site ~}\StringTok{ }\NormalTok{.) +}
+\NormalTok{+}\StringTok{     }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"top"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=\linewidth]{02-learning-r_files/figure-beamer/ggplot-facet-grid-1} \end{center}
+
+\columnsend
+
+\end{frame}
+
+\section{R package management}\label{r-package-management}
+
+\begin{frame}[fragile]{R package management}
+
+\begin{itemize}
+\tightlist
+\item
+  CRAN contains hundreds of packages of user-contributed code that you
+  can install from an R session
+\item
+  Package installation via function \texttt{install.packages()}
+\item
+  Packages can be updated via function \texttt{updates.packages()}
+\item
+  When installing or updating for the first time in a session, R will
+  prompt you to choose a mirror to download from
+\item
+  Once a package is installed you need to load it ready for use
+\item
+  Load a package from your library using \texttt{library()} or
+  \texttt{require()}
+\item
+  Windows and MacOS have menu items to assist with these operations as
+  does RStudio
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{install.packages}\NormalTok{(}\StringTok{"vegan"}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{update.packages}\NormalTok{()}
+\NormalTok{>}\StringTok{ }\KeywordTok{update.packages}\NormalTok{(}\DataTypeTok{ask =} \OtherTok{FALSE}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{library}\NormalTok{(}\StringTok{"vegan"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\end{frame}
+
+\begin{frame}[fragile]{R package management}
+
+\begin{itemize}
+\tightlist
+\item
+  It is useful to create your own library for downloaded packages
+\item
+  This library will not be overwritten when you install a new version of
+  R
+\item
+  To set a directory you have write permissions on as your user library,
+  create a file named \texttt{.Renviron} in your home directory
+
+  \begin{itemize}
+  \tightlist
+  \item
+    On Windows this is usually
+    \texttt{C:\textbackslash{}Documents\textasciitilde{}and\textasciitilde{}Settings\textbackslash{}username\textbackslash{}My\textasciitilde{}Documents}
+  \item
+    On Linux it is \texttt{/home/user/}
+  \end{itemize}
+\item
+  To set your user library to stated directory, add following to your
+  \texttt{.Renviron}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    On Windows if installed R to \texttt{C:\textbackslash{}R} add:
+    \texttt{R\_LIBS=C:/R/myRlib}
+  \item
+    On Linux, create directory \texttt{/home/user/R/libs} say and then
+    add: \texttt{R\_LIBS=/home/user/R/libs}
+  \end{itemize}
+\end{itemize}
 
 \end{frame}
 
