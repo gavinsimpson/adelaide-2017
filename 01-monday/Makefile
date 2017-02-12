@@ -8,3 +8,9 @@ learningR: 02-learning-r.Rmd
 
 linmods: 03-linear-models.Rmd
 	Rscript -e 'rmarkdown::render("03-linear-models.Rmd")'
+
+04-linear-models-prac.pdf: 04-linear-models-prac.Rnw
+	R CMD Sweave --clean 04-linear-models-prac.Rnw
+	R CMD texi2pdf --build=tidy 04-linear-models-prac.tex
+	rm 04-linear-models-prac.aux 04-linear-models-prac.log
+
