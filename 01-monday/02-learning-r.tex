@@ -28,6 +28,52 @@
 \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
 \newif\ifbibliography
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{{#1}}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\ImportTok}[1]{{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{{#1}}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{{#1}}}}
+\newcommand{\BuiltInTok}[1]{{#1}}
+\newcommand{\ExtensionTok}[1]{{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{{#1}}}
+\newcommand{\RegionMarkerTok}[1]{{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{{#1}}}}
+\newcommand{\NormalTok}[1]{{#1}}
+\usepackage{longtable,booktabs}
+\usepackage{caption}
+% These lines are needed to make table captions work with longtable:
+\makeatletter
+\def\fnum@table{\tablename~\thetable}
+\makeatother
 
 % Prevent slide breaks in the middle of a paragraph:
 \widowpenalties 1 10000
@@ -75,6 +121,17 @@
 \newcommand{\centreFigEnd}{\end{figure}}
 %%
 
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}, fontsize=\tiny}
+% make console-output smaller:
+\makeatletter
+\def\verbatim{\tiny\@verbatim \frenchspacing\@vobeyspaces \@xverbatim}
+\makeatother
+\setlength{\parskip}{0pt}
+\setlength{\OuterFrameSep}{-4pt} % was -4pt
+\makeatletter
+\preto{\@verbatim}{\topsep=-10pt \partopsep=-10pt} % were -10pt
+\makeatother
+
 \title{Learning R}
 \author{Gavin L. Simpson}
 \date{February, 2017}
@@ -82,9 +139,921 @@
 \begin{document}
 \frame{\titlepage}
 
+\section{Introduction to R}\label{introduction-to-r}
+
+\begin{frame}{Why R?}
+
+\begin{itemize}
+\tightlist
+\item
+  R was designed from the ground up as a language for data analysis
+\item
+  It is free and open source, and available on all the major OSes
+\item
+  Huge package ecosystem (\textgreater{} 10,000) covering bewildering
+  array of statistical methods, data visualisations, data import and
+  manipulation
+\item
+  Cutting edge; R is used by thousands of statisticians \& R code or a
+  package often accompanies papers developing new methods
+\item
+  For the most part, a great community providing help, blog posts etc
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{What is R?}
+
+\begin{itemize}
+\tightlist
+\item
+  The S statistical language was started at Bell Labs on May 5, 1976
+\item
+  A system for general data analysis jobs that could replace the
+  \emph{ad hoc} creation of Fortran applications
+\item
+  The S language was licensed by Insightful Corporation for use in their
+  \emph{S-PLUS} software
+\item
+  In 2004 Insightful bought the S language from Lucent (formerly AT\&T
+  and before that Bell Labs)
+\item
+  Robert Gentleman and Ross Ihaka designed a language that was
+  compatible with S but which worked in a different way internally
+\item
+  They called this language R
+\item
+  There was a lot of interest in R and eventually it was made Open
+  Source under the GNU GPL-2
+\item
+  R has drawn around it a group of dedicated stewards of the R software
+  --- \alert{R Core}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{R on the web}
+
+\begin{itemize}
+\tightlist
+\item
+  The R homepage is located at:
+  \href{http://www.r-project.org}{www.r-project.org}
+\item
+  The download site is called CRAN --- the \textbf{Comprehensive R
+  Archive Network}
+\item
+  CRAN is a series of mirrored web servers to spread the load of
+  thousands of users downloading R and associated packages
+\item
+  The CRAN master is at:
+  \href{http://cran.r-project.org}{cran.r-project.org}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Starting R and other preliminaries}
+
+\begin{itemize}
+\tightlist
+\item
+  You start R in a variety of ways depending on your OS
+\item
+  R starts in a \textbf{working directory} where it looks for files and
+  saves objects
+\item
+  Best to run R in a new directory for each project or analysis task
+\item
+  \texttt{getwd()} and \texttt{setwd()} get and set the working
+  directory
+\item
+  To exit R, the function \texttt{q()} is used
+\item
+  You will be asked if you want to save your workspace; invariably you
+  should answer \texttt{n} to this
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Getting help}
+
+\begin{itemize}
+\tightlist
+\item
+  R comes with a lot of documentation
+\item
+  To get help on functions or concepts within R, use the \texttt{"?"}
+  operator
+\item
+  For help on the \texttt{getwd()} function use: \texttt{?getwd}
+\item
+  Function \texttt{help.search("foo")} will search through all packages
+  installed for help pages with \texttt{"foo"} in them
+\item
+  How the help is displayed is system dependent
+\item
+  Google is your friend
+\item
+  StackOverflow's R tag:
+  \href{http://stackoverflow.com/questions/tagged/r}{stackoverflow.com/questions/tagged/r}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Working with R \& entering commands}
+
+\begin{itemize}
+\tightlist
+\item
+  Type commands at prompt \texttt{"\textgreater{}"} and these are
+  evaluated when you hit RETURN
+\item
+  If a line is not syntactically complete, the prompt is changed to
+  \texttt{"+"}
+\item
+  If returned object not assigned, it is printed to console
+\item
+  Assigning the results of a function call achieved by the assignment
+  operator \texttt{"\textless{}-"}
+\item
+  Whatever is on the right of \texttt{"\textless{}-"} is assigned to the
+  object named on the left of \texttt{"\textless{}-"}
+\item
+  Enter the name of an object and hit RETURN to print the contents
+\item
+  \texttt{ls()} returns a list of objects currently in your workspace
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Working with R \& entering commands}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\DecValTok{5} \NormalTok{*}\StringTok{ }\DecValTok{3}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 15
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{radius <-}\StringTok{ }\DecValTok{5}
+\NormalTok{>}\StringTok{ }\NormalTok{pi *}\StringTok{ }\NormalTok{radius^}\DecValTok{2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 78.53982
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{ans <-}\StringTok{ }\DecValTok{5} \NormalTok{*}\StringTok{ }\DecValTok{3}
+\NormalTok{>}\StringTok{ }\NormalTok{ans}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 15
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{ans2 <-}\StringTok{ }\NormalTok{ans +}\StringTok{ }\DecValTok{20}
+\NormalTok{>}\StringTok{ }\NormalTok{ans2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 35
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{ls}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] "ans"    "ans2"   "radius"
+\end{verbatim}
+
+\end{frame}
+
+\section{Data structures}\label{data-structures}
+
+\begin{frame}[fragile]{The basic data structures}
+
+Following Hadley Wickham's \emph{Advanced R}, the basic data structures
+in R can be classified according to
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  whether their contents are all the same (homogeneous) or not,
+\item
+  the dimensionality of the object
+
+  \begin{longtable}[]{@{}rll@{}}
+  \toprule
+  Homo & geneous Hete & rogeneous\tabularnewline
+  \midrule
+  \endhead
+  1d & Atomic vector & List\tabularnewline
+  2d & Matrix & Data frame\tabularnewline
+  nd & Array & NA\tabularnewline
+  \bottomrule
+  \end{longtable}
+\end{enumerate}
+
+The best way to understand which data structure an R object is, is to
+use \texttt{str()}
+
+\end{frame}
+
+\begin{frame}[fragile]{Vectors}
+
+Vectors are the basic type of data object in R and there are two main
+types
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \emph{atomic} vectors
+\item
+  lists
+\end{enumerate}
+
+Each with three common properties
+
+\begin{itemize}
+\tightlist
+\item
+  What type of vector the object is: \texttt{typeof()}
+\item
+  Its length: \texttt{length()}
+\item
+  Attributes, which are extra information or metadata:
+  \texttt{attributes()}, \texttt{attr()}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Atomic vectors}
+
+\textbf{Atomic} vectors differ fundamentally from lists because atomic
+vectors can only contain elements that are \emph{all of the same type}
+
+The four main types of atomic vector are
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  logical
+\item
+  integer
+\item
+  double
+\item
+  character
+\end{enumerate}
+
+Two other types are less often encountered; raw and complex vectors
+
+\end{frame}
+
+\begin{frame}[fragile]{Atomic vectors}
+
+We create atomic vector with \texttt{c()}, the \emph{concatenate} or
+\emph{combine} function
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{dbl <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{int <-}\StringTok{ }\KeywordTok{c}\NormalTok{(1L, 2L, 3L)}
+\NormalTok{>}\StringTok{ }\NormalTok{logi <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\OtherTok{TRUE}\NormalTok{, }\OtherTok{FALSE}\NormalTok{, }\OtherTok{TRUE}\NormalTok{)            }\CommentTok{# Avoid using c(T, F, T)}
+\NormalTok{>}\StringTok{ }\NormalTok{chr <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Hello"}\NormalTok{, }\StringTok{"World"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+If an element (observation) is missing, use \texttt{NA}
+
+\end{frame}
+
+\begin{frame}[fragile]{Atomic vectors --- coercion}
+
+All elements of atomic vectors must be of the same type. If you mix
+types or attempt to combine atomic vectors of different types, they will
+be \emph{coerced} towards the most general type.
+
+The ordering is (from least to most general)
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  logical
+\item
+  integer
+\item
+  double
+\item
+  character
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{str}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"a"}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+ chr [1:2] "a" "1"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{str}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\OtherTok{TRUE}\NormalTok{, }\DecValTok{10}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+ num [1:2] 1 10
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{str}\NormalTok{(}\KeywordTok{c}\NormalTok{(10L, }\DecValTok{2}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+ num [1:2] 10 2
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]{Atomic vectors --- coercion}
+
+One handy coercion is the conversion of logical vectors to numeric
+(integer or double).
+
+A \texttt{TRUE} is \texttt{1}, whilst a \texttt{FALSE} is \texttt{0},
+which allows them to be used in numeric mathematical operations
+
+Coercion happens atomically, but you can control this by explicitly
+coercing to the required type with
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{as.characer()}
+\item
+  \texttt{as.double()}
+\item
+  \texttt{as.integer()}
+\item
+  \texttt{as.logical()}
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\OtherTok{FALSE}\NormalTok{, }\OtherTok{FALSE}\NormalTok{, }\OtherTok{TRUE}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{as.numeric}\NormalTok{(x)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0 0 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{sum}\NormalTok{(x)                                  }\CommentTok{# count up the TRUEs}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{mean}\NormalTok{(x)                                 }\CommentTok{# proportion of TRUE}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0.3333333
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]{Lists}
+
+Lists are exceedingly common in R --- it's often how fitted statistical
+models are stored
+
+Lists are \emph{general} vectors because they elements they contain can
+be of any type --- lists can even contain lists
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{3}\NormalTok{, }\StringTok{"a"}\NormalTok{, }\KeywordTok{c}\NormalTok{(}\OtherTok{TRUE}\NormalTok{, }\OtherTok{FALSE}\NormalTok{, }\OtherTok{TRUE}\NormalTok{), }\KeywordTok{c}\NormalTok{(}\FloatTok{2.3}\NormalTok{, }\FloatTok{5.9}\NormalTok{))}
+\NormalTok{>}\StringTok{ }\KeywordTok{str}\NormalTok{(x)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+List of 4
+ $ : int [1:3] 1 2 3
+ $ : chr "a"
+ $ : logi [1:3] TRUE FALSE TRUE
+ $ : num [1:2] 2.3 5.9
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\KeywordTok{list}\NormalTok{(}\KeywordTok{list}\NormalTok{(list)))}
+\NormalTok{>}\StringTok{ }\KeywordTok{str}\NormalTok{(x)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+List of 1
+ $ :List of 1
+  ..$ :List of 1
+  .. ..$ :function (...)  
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]{Factors}
+
+Factors are useful for storing data where observations can take on one
+of a finite set of values
+
+Factors combine integer vectors with attributes to create a new data
+structure
+
+They have \texttt{class()} \texttt{"factor"} and a \texttt{levels()}
+attribute which lists the set of values the elements can take
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x <-}\StringTok{ }\KeywordTok{factor}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"x"}\NormalTok{,}\StringTok{"y"}\NormalTok{,}\StringTok{"z"}\NormalTok{,}\StringTok{"z"}\NormalTok{,}\StringTok{"x"}\NormalTok{,}\StringTok{"z"}\NormalTok{,}\StringTok{"y"}\NormalTok{))}
+\NormalTok{>}\StringTok{ }\NormalTok{x}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] x y z z x z y
+Levels: x y z
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{class}\NormalTok{(x)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] "factor"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{levels}\NormalTok{(x)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] "x" "y" "z"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x[}\DecValTok{2}\NormalTok{] <-}\StringTok{ "c"}                             \CommentTok{# throws a warning}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Warning in `[<-.factor`(`*tmp*`, 2, value = "c"): invalid factor level, NA
+generated
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] x    <NA> z    z    x    z    y   
+Levels: x y z
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x <-}\StringTok{ }\KeywordTok{factor}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"x"}\NormalTok{,}\StringTok{"y"}\NormalTok{,}\StringTok{"z"}\NormalTok{,}\StringTok{"z"}\NormalTok{), }\DataTypeTok{levels =} \KeywordTok{c}\NormalTok{(}\StringTok{"z"}\NormalTok{,}\StringTok{"y"}\NormalTok{,}\StringTok{"x"}\NormalTok{)) }\CommentTok{# specify levels}
+\end{Highlighting}
+\end{Shaded}
+
+\end{frame}
+
+\begin{frame}[fragile]{Matrices \& arrays}
+
+What separates atomic vectors from arrays is the presence of a
+\texttt{dim()} attribute
+
+As arrays are really atomic vectors with this extra attribute, they can
+only contain elements of a single type
+
+Matrices are a special case of a multi-dimensional array, where there
+are only two dimensions
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{m <-}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{6}\NormalTok{, }\DataTypeTok{ncol =} \DecValTok{3}\NormalTok{, }\DataTypeTok{nrow =} \DecValTok{2}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{m}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+     [,1] [,2] [,3]
+[1,]    1    3    5
+[2,]    2    4    6
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{m <-}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{6}\NormalTok{, }\KeywordTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{,}\DecValTok{2}\NormalTok{))}
+\NormalTok{>}\StringTok{ }
+\ErrorTok{>}\StringTok{ }\NormalTok{m <-}\StringTok{ }\DecValTok{1}\NormalTok{:}\DecValTok{6}
+\NormalTok{>}\StringTok{ }\KeywordTok{dim}\NormalTok{(m) <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{,}\DecValTok{2}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{dim}\NormalTok{(m) <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{m}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+     [,1] [,2] [,3]
+[1,]    1    3    5
+[2,]    2    4    6
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]{Data frames}
+
+Data frames are a bit like Excel worksheets for R; they are like 2-d
+matrices with the exception that the columns can store different types
+of objects
+
+Internally, data frames are lists, with the extra restriction that each
+component (column) of the data frame has to be of the same length
+
+Data frame can be created using \texttt{data.frame()}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{df <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{x =} \DecValTok{1}\NormalTok{:}\DecValTok{3}\NormalTok{, }\DataTypeTok{y =} \KeywordTok{c}\NormalTok{(}\StringTok{"a"}\NormalTok{, }\StringTok{"b"}\NormalTok{, }\StringTok{"c"}\NormalTok{))}
+\NormalTok{>}\StringTok{ }\KeywordTok{str}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+'data.frame':   3 obs. of  2 variables:
+ $ x: int  1 2 3
+ $ y: Factor w/ 3 levels "a","b","c": 1 2 3
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{df <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{x =} \DecValTok{1}\NormalTok{:}\DecValTok{3}\NormalTok{, }\DataTypeTok{y =} \KeywordTok{c}\NormalTok{(}\StringTok{"a"}\NormalTok{, }\StringTok{"b"}\NormalTok{, }\StringTok{"c"}\NormalTok{), }\DataTypeTok{stringsAsFactors =} \OtherTok{FALSE}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{is.data.frame}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] TRUE
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{nrow}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 3
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{class}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] "data.frame"
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]{Data frames II}
+
+Additional columns and rows can be added to a data frame using
+\texttt{cbind()} and \texttt{rbind()} respectively
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{cbind}\NormalTok{(df, }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{z =} \DecValTok{3}\NormalTok{:}\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  x y z
+1 1 a 3
+2 2 b 2
+3 3 c 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{rbind}\NormalTok{(df, }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{x =} \DecValTok{10}\NormalTok{, }\DataTypeTok{y =} \StringTok{"z"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+   x y
+1  1 a
+2  2 b
+3  3 c
+4 10 z
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}{Subsetting}
+
+Subsetting is an incredibly useful and powerful way of manipulating data
+objects --- but it is hard to learn initially as there is a lot of
+detail to remember
+
+\end{frame}
+
+\begin{frame}[fragile]{Subsetting atomic vectors}
+
+\columnsbegin
+\column{0.7\linewidth}
+
+The main subsetting function is \texttt{{[}} --- it takes one of several
+types of arguments which determines how the vector is subset
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{positive integers} return the specified elements
+\item
+  \emph{negative integers} omit the specified elements from the result
+\item
+  \emph{logical vectors} return elements where the logical vector is
+  \texttt{TRUE}
+\item
+  \emph{nothing} returns the original vector
+\item
+  \emph{zero} returns a zero-length vector
+\end{itemize}
+
+Subsetting a list works the same way with \texttt{{[}}
+
+\column{0.3\linewidth}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\FloatTok{1.3}\NormalTok{, }\FloatTok{4.5}\NormalTok{, }\FloatTok{2.3}\NormalTok{, }\FloatTok{4.2}\NormalTok{, }\FloatTok{5.4}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\NormalTok{x[}\KeywordTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{1}\NormalTok{)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 2.3 1.3
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x[-}\KeywordTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{1}\NormalTok{)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 4.5 4.2 5.4
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x[x >}\StringTok{ }\DecValTok{3}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 4.5 4.2 5.4
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x[}\KeywordTok{c}\NormalTok{(}\OtherTok{TRUE}\NormalTok{, }\OtherTok{FALSE}\NormalTok{)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 1.3 2.3 5.4
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x[]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 1.3 4.5 2.3 4.2 5.4
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{x[}\DecValTok{0}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+numeric(0)
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{(y <-}\StringTok{ }\KeywordTok{setNames}\NormalTok{(x, letters[}\DecValTok{1}\NormalTok{:}\DecValTok{5}\NormalTok{]))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  a   b   c   d   e 
+1.3 4.5 2.3 4.2 5.4 
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{y[}\KeywordTok{c}\NormalTok{(}\StringTok{"a"}\NormalTok{, }\StringTok{"c"}\NormalTok{)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  a   c 
+1.3 2.3 
+\end{verbatim}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}[fragile]{Subsetting matrices and arrays}
+
+\columnsbegin
+\column{0.7\linewidth}
+
+The main subsetting function is \texttt{{[}} --- it takes one of several
+types of arguments which determines how the array is subset
+
+\begin{itemize}
+\tightlist
+\item
+  a pair of 1-d vectors, one for each dimension
+\item
+  a single 1-d vector
+\item
+  a matrix
+\end{itemize}
+
+\column{0.3\linewidth}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{a <-}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{9}\NormalTok{, }\DataTypeTok{nrow =} \DecValTok{3}\NormalTok{)}
+\NormalTok{>}\StringTok{ }\KeywordTok{colnames}\NormalTok{(a) <-}\StringTok{ }\NormalTok{LETTERS[}\DecValTok{1}\NormalTok{:}\DecValTok{3}\NormalTok{]}
+\NormalTok{>}\StringTok{ }\NormalTok{a[}\DecValTok{1}\NormalTok{:}\DecValTok{2}\NormalTok{, ]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+     A B C
+[1,] 1 4 7
+[2,] 2 5 8
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{a[, }\DecValTok{2}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 4 5 6
+\end{verbatim}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}[fragile]{Subsetting data frames}
+
+\columnsbegin
+\column{0.5\linewidth}
+
+Again, the main subsetting function is \texttt{{[}} --- you can use it
+to subset a data frame as if it were
+
+\begin{itemize}
+\tightlist
+\item
+  a matrix, with an indexing vector for the rows and the columns
+\item
+  a list
+\end{itemize}
+
+\column{0.5\linewidth}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{df <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{x =} \DecValTok{1}\NormalTok{:}\DecValTok{3}\NormalTok{, }\DataTypeTok{y =} \DecValTok{3}\NormalTok{:}\DecValTok{1}\NormalTok{, }\DataTypeTok{z =} \NormalTok{letters[}\DecValTok{1}\NormalTok{:}\DecValTok{3}\NormalTok{])}
+\NormalTok{>}\StringTok{ }\NormalTok{df[df$x ==}\StringTok{ }\DecValTok{2}\NormalTok{, ]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  x y z
+2 2 2 b
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{df[}\KeywordTok{c}\NormalTok{(}\StringTok{"x"}\NormalTok{, }\StringTok{"y"}\NormalTok{)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  x y
+1 1 3
+2 2 2
+3 3 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\NormalTok{df[, }\KeywordTok{c}\NormalTok{(}\StringTok{"x"}\NormalTok{, }\StringTok{"y"}\NormalTok{)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  x y
+1 1 3
+2 2 2
+3 3 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{str}\NormalTok{(df[}\StringTok{"x"}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+'data.frame':   3 obs. of  1 variable:
+ $ x: int  1 2 3
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{>}\StringTok{ }\KeywordTok{str}\NormalTok{(df[, }\StringTok{"x"}\NormalTok{])                          }\CommentTok{# drops the enpty dimension}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+ int [1:3] 1 2 3
+\end{verbatim}
+
+\columnsend
+
+\end{frame}
+
 \begin{frame}{Re-use}
 
-Copyright © (2015) Gavin L. Simpson Some Rights Reserved
+Copyright © (2015--2017) Gavin L. Simpson Some Rights Reserved
 
 Unless indicated otherwise, this slide deck is licensed under a
 \href{http://creativecommons.org/licenses/by/4.0/}{Creative Commons

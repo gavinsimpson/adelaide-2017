@@ -749,7 +749,54 @@ TODO - needs an example
 
 \begin{frame}{Chronological clustering}
 
-TODO insert HJBB's figure from chpt 11 DPER5
+\begin{itemize}
+\tightlist
+\item
+  Optimal partitioning
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Identifies optimal locations for splits to form \(k\) zones
+  \item
+    Non-hierarchical, 3 zone solution \textbf{not} found by splitting
+    one of the zones from the two zone solution
+  \item
+    Split placed to minimise within-cluster sum of squares or
+    information conten
+  \end{itemize}
+\item
+  Binary (divisive) splitting
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Similar to optimal method but \textit{is} hierarchical
+  \item
+    Split sequence into two zones, then split one of the 2 resulting
+    zones, repeat
+  \item
+    Zone that is split is the one that would reduce within-group SS or
+    IC the most
+  \end{itemize}
+\item
+  Agglomerative partitioning
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Start with all samples in separate zones and fuse the most similar
+    adjacent samples
+  \item
+    Repeat, each time fusing most similar samples or zones
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Chronological clustering}
+
+TODO insert HJBB's figure 1 from chpt 11 DPER5
 
 \end{frame}
 

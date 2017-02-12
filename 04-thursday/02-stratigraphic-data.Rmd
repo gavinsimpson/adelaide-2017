@@ -385,7 +385,21 @@ TODO - needs an example
 
 ## Chronological clustering
 
-TODO insert HJBB's figure from chpt 11 DPER5
+- Optimal partitioning
+    - Identifies optimal locations for splits to form $k$ zones
+    - Non-hierarchical, 3 zone solution \textbf{not} found by splitting one of the zones from the two zone solution
+    - Split placed to minimise within-cluster sum of squares or information conten
+- Binary (divisive) splitting
+    - Similar to optimal method but \textit{is} hierarchical
+    - Split sequence into two zones, then split one of the 2 resulting zones, repeat
+    - Zone that is split is the one that would reduce within-group SS or IC the most
+- Agglomerative partitioning
+    - Start with all samples in separate zones and fuse the most similar adjacent samples
+    - Repeat, each time fusing most similar samples or zones
+
+## Chronological clustering
+
+TODO insert HJBB's figure 1 from chpt 11 DPER5
 
 ## CONISS
 

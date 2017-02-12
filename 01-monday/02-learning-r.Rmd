@@ -19,10 +19,335 @@ output:
     ]
 ---
 
+```{r setup-options, echo = FALSE, results = "hide", message = FALSE}
+knitr::opts_chunk$set(comment=NA, prompt=TRUE, fig.align = "center", out.width = "0.7\\linewidth",
+                      echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE)
+knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
+```
+
+# Introduction to R
+
+## Why R?
+
+* R was designed from the ground up as a language for data analysis
+* It is free and open source, and available on all the major OSes
+* Huge package ecosystem (> 10,000) covering bewildering array of statistical methods, data visualisations, data import and manipulation
+* Cutting edge; R is used by thousands of statisticians & R code or a package often accompanies papers developing new methods
+* For the most part, a great community providing help, blog posts etc
+
+## What is R?
+
+- The S statistical language was started at Bell Labs on May 5, 1976
+- A system for general data analysis jobs that could replace the *ad hoc* creation of Fortran applications
+- The S language was licensed by Insightful Corporation for use in their *S-PLUS* software
+- In 2004 Insightful bought the S language from Lucent (formerly AT\&T and before that Bell Labs)
+- Robert Gentleman and Ross Ihaka designed a language that was compatible with S but which worked in a different way internally
+- They called this language R
+- There was a lot of interest in R and eventually it was made Open Source under the GNU GPL-2
+- R has drawn around it a group of dedicated stewards of the R software --- \alert{R Core}
+
+## R on the web
+
+- The R homepage is located at: [www.r-project.org](http://www.r-project.org)
+- The download site is called CRAN --- the **Comprehensive R Archive Network**
+- CRAN is a series of mirrored web servers to spread the load of thousands of users downloading R and associated packages
+- The CRAN master is at: [cran.r-project.org](http://cran.r-project.org)
+
+## Starting R and other preliminaries
+
+- You start R in a variety of ways depending on your OS
+- R starts in a **working directory** where it looks for files and saves objects
+- Best to run R in a new directory for each project or analysis task
+- `getwd()` and `setwd()` get and set the working directory
+- To exit R, the function `q()` is used
+- You will be asked if you want to save your workspace; invariably you should answer `n` to this
+
+## Getting help
+
+- R comes with a lot of documentation
+- To get help on functions or concepts within R, use the `"?"` operator
+- For help on the `getwd()` function use: `?getwd`
+- Function `help.search("foo")` will search through all packages installed for help pages with `"foo"` in them
+- How the help is displayed is system dependent
+- Google is your friend
+- StackOverflow's R tag: [stackoverflow.com/questions/tagged/r](http://stackoverflow.com/questions/tagged/r)
+
+## Working with R & entering commands
+
+- Type commands at prompt `">"` and these are evaluated when you hit RETURN
+- If a line is not syntactically complete, the prompt is changed to `"+"`
+- If returned object not assigned, it is printed to console
+- Assigning the results of a function call achieved by the assignment operator `"<-"`
+- Whatever is on the right of `"<-"` is assigned to the object named on the left of `"<-"`
+- Enter the name of an object and hit RETURN to print the contents
+- `ls()` returns a list of objects currently in your workspace
+
+## Working with R & entering commands
+
+```{r entering-commands}
+5 * 3
+radius <- 5
+pi * radius^2
+ans <- 5 * 3
+ans
+ans2 <- ans + 20
+ans2
+ls()
+```
+
+# Data structures
+
+## The basic data structures
+
+Following Hadley Wickham's *Advanced R*, the basic data structures in R can be classified according to 
+
+1. whether their contents are all the same (homogeneous) or not, 
+2. the dimensionality of the object
+
+```{r data-structures-table, results="asis", echo=FALSE}
+tab <- data.frame(Homogeneous = c("Atomic vector", "Matrix", "Array"),
+                  Heterogeneous = c("List", "Data frame", NA))
+rownames(tab) <- paste0(c("1","2","n"), "d")
+knitr::kable(tab)
+```
+
+The best way to understand which data structure an R object is, is to use `str()`
+
+## Vectors
+
+Vectors are the basic type of data object in R and there are two main types
+
+1. *atomic* vectors
+2. lists
+
+Each with three common properties
+
+- What type of vector the object is: `typeof()`
+- Its length: `length()`
+- Attributes, which are extra information or metadata: `attributes()`, `attr()`
+
+## Atomic vectors
+
+**Atomic** vectors differ fundamentally from lists because atomic vectors can only contain elements that are *all of the same type*
+
+The four main types of atomic vector are
+
+1. logical
+2. integer
+3. double
+4. character
+
+Two other types are less often encountered; raw and complex vectors
+
+## Atomic vectors
+
+We create atomic vector with `c()`, the *concatenate* or *combine* function
+
+```{r atomic-vectors-1}
+dbl <- c(1, 2, 3)
+int <- c(1L, 2L, 3L)
+logi <- c(TRUE, FALSE, TRUE)            # Avoid using c(T, F, T)
+chr <- c("Hello", "World")
+```
+
+If an element (observation) is missing, use `NA`
+
+## Atomic vectors --- coercion
+
+All elements of atomic vectors must be of the same type. If you mix types or attempt to combine atomic vectors of different types, they will be *coerced* towards the most general type.
+
+The ordering is (from least to most general)
+
+1. logical
+2. integer
+3. double
+4. character
+
+```{r atomic-vectors-coercion}
+str(c("a", 1))
+str(c(TRUE, 10))
+str(c(10L, 2))
+```
+
+## Atomic vectors --- coercion
+
+One handy coercion is the conversion of logical vectors to numeric (integer or double).
+
+A `TRUE` is `1`, whilst a `FALSE` is `0`, which allows them to be used in numeric mathematical operations
+
+Coercion happens atomically, but you can control this by explicitly coercing to the required type with
+
+- `as.characer()`
+- `as.double()`
+- `as.integer()`
+- `as.logical()`
+
+```{r atomic-vectors-coercion-2}
+x <- c(FALSE, FALSE, TRUE)
+as.numeric(x)
+sum(x)                                  # count up the TRUEs
+mean(x)                                 # proportion of TRUE
+```
+
+## Lists
+
+Lists are exceedingly common in R --- it's often how fitted statistical models are stored
+
+Lists are *general* vectors because they elements they contain can be of any type --- lists can even contain lists
+
+```{r lists-1}
+x <- list(1:3, "a", c(TRUE, FALSE, TRUE), c(2.3, 5.9))
+str(x)
+x <- list(list(list(list)))
+str(x)
+```
+
+## Factors
+
+Factors are useful for storing data where observations can take on one of a finite set of values
+
+Factors combine integer vectors with attributes to create a new data structure
+
+They have `class()` `"factor"` and a `levels()` attribute which lists the set of values the elements can take
+
+```{r factors, warning=TRUE}
+x <- factor(c("x","y","z","z","x","z","y"))
+x
+class(x)
+levels(x)
+x[2] <- "c"                             # throws a warning
+x
+x <- factor(c("x","y","z","z"), levels = c("z","y","x")) # specify levels
+```
+
+## Matrices & arrays
+
+What separates atomic vectors from arrays is the presence of a `dim()` attribute
+
+As arrays are really atomic vectors with this extra attribute, they can only contain elements of a single type
+
+Matrices are a special case of a multi-dimensional array, where there are only two dimensions
+
+```{r matrices-1}
+m <- matrix(1:6, ncol = 3, nrow = 2)
+m
+m <- matrix(1:6, c(3,2))
+
+m <- 1:6
+dim(m) <- c(3,2)
+dim(m) <- c(2,3)
+m
+```
+
+## Data frames
+
+Data frames are a bit like Excel worksheets for R; they are like 2-d matrices with the exception that the columns can store different types of objects
+
+Internally, data frames are lists, with the extra restriction that each component (column) of the data frame has to be of the same length
+
+Data frame can be created using `data.frame()`
+
+```{r data-frames-1}
+df <- data.frame(x = 1:3, y = c("a", "b", "c"))
+str(df)
+df <- data.frame(x = 1:3, y = c("a", "b", "c"), stringsAsFactors = FALSE)
+is.data.frame(df)
+nrow(df)
+class(df)
+```
+
+## Data frames II
+
+Additional columns and rows can be added to a data frame using `cbind()` and `rbind()` respectively
+
+```{r data-frames-2}
+cbind(df, data.frame(z = 3:1))
+rbind(df, data.frame(x = 10, y = "z"))
+```
+
+## Subsetting
+
+Subsetting is an incredibly useful and powerful way of manipulating data objects --- but it is hard to learn initially as there is a lot of detail to remember
+
+## Subsetting atomic vectors
+
+\columnsbegin
+\column{0.7\linewidth}
+
+The main subsetting function is `[` --- it takes one of several types of arguments which determines how the vector is subset
+
+* *positive integers* return the specified elements
+* *negative integers* omit the specified elements from the result
+* *logical vectors* return elements where the logical vector is `TRUE`
+* *nothing* returns the original vector
+* *zero* returns a zero-length vector
+
+Subsetting a list works the same way with `[`
+
+\column{0.3\linewidth}
+
+```{r subsetting-vectors}
+x <- c(1.3, 4.5, 2.3, 4.2, 5.4)
+x[c(3, 1)]
+x[-c(3, 1)]
+x[x > 3]
+x[c(TRUE, FALSE)]
+x[]
+x[0]
+(y <- setNames(x, letters[1:5]))
+y[c("a", "c")]
+```
+
+\columnsend
+
+## Subsetting matrices and arrays
+
+\columnsbegin
+\column{0.7\linewidth}
+
+The main subsetting function is `[` --- it takes one of several types of arguments which determines how the array is subset
+
+* a pair of 1-d vectors, one for each dimension
+* a single 1-d vector
+* a matrix
+
+\column{0.3\linewidth}
+
+```{r subsetting-matrices}
+a <- matrix(1:9, nrow = 3)
+colnames(a) <- LETTERS[1:3]
+a[1:2, ]
+a[, 2]
+```
+
+\columnsend
+
+## Subsetting data frames
+
+\columnsbegin
+\column{0.5\linewidth}
+
+Again, the main subsetting function is `[` --- you can use it to subset a data frame as if it were
+
+* a matrix, with an indexing vector for the rows and the columns
+* a list
+
+\column{0.5\linewidth}
+
+```{r subsetting-data-frames}
+df <- data.frame(x = 1:3, y = 3:1, z = letters[1:3])
+df[df$x == 2, ]
+df[c("x", "y")]
+df[, c("x", "y")]
+str(df["x"])
+str(df[, "x"])                          # drops the enpty dimension
+```
+
+\columnsend
 
 ## Re-use
 
-Copyright © (2015) Gavin L. Simpson Some Rights Reserved
+Copyright © (2015--2017) Gavin L. Simpson Some Rights Reserved
 
 Unless indicated otherwise, this slide deck is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
 
