@@ -42,9 +42,9 @@ theme_set(theme_bw())
 
 ## Generalized additive models
 
-\alert{Generalised additive nodels}
+\alert{Generalized additive models}
 
-- Generalized --- conditiona distribution of $y$ from (extended) exponential family of distributions
+- Generalized --- conditions distribution of $y$ from (extended) exponential family of distributions
 - Additive --- assume nothing more that separate model component sum
 - Models --- it's a model
 
@@ -82,7 +82,7 @@ ggplot(dat, aes(y=y, x=x1)) + geom_point() +
     geom_smooth(method="lm")
 ```
 
-## WHat can we do?
+## What can we do?
 
 ```{r eval=FALSE, echo=TRUE}
 lm(y ~ x1 + poly(x1, 2), data=dat)
@@ -104,10 +104,10 @@ ggplot(dat, aes(y=y, x=x2)) + geom_point() +
     geom_smooth(method="lm", formula = y~poly(x, 2))
 ```
 
-## WHat does a GAM look like?
+## What does a GAM look like?
 
 $$
-y_i = \beta_0 + \sum_j s_j(x_{ji}) + \epsilon_i
+y_i = \beta_0 + \sum_j s_j(x_{ji}) + \varepsilon_i
 $$
 
 where $\epsilon_i \sim N(0, \sigma^2)$, $y_i \sim \text{Normal}$ (for now)
@@ -119,8 +119,17 @@ Call the above equation the **linear predictor**
 ## What are these $s_j$?
 
 \columnsbegin
-\column{0.55\linewidth}
-```{r smoothdat, fig.width=8, fig.height=8}
+
+\column{0.5\linewidth}
+
+- Think $s$ = **smooth**
+- Want to model the covariates flexibly
+- Covariates and response not necessarily linearly related!
+- Want some "wiggles"
+
+\column{0.5\linewidth}
+
+```{r smoothdat, fig.width=8, fig.height=8, out.width="0.7\\linewidth"}
 spdat <- melt(dat, id.vars = c("y"))
 p <- ggplot(spdat,aes(y=y,x=value)) +
       geom_point() +
@@ -128,31 +137,25 @@ p <- ggplot(spdat,aes(y=y,x=value)) +
 print(p)
 ```
 
-\column{0.45\linewidth}
-
-- Think $s$ = **smooth**
-- Want to model the covariates flexibly
-- Covariates and response not necessarily linearly related!
-- Want some "wiggles"
-
 \columnsend
 
 ## What are these $s_j$?
 
 \columnsbegin
-\column{0.55\linewidth}
 
-```{r wsmooths, fig.width=8, fig.height=8}
-p <- p + geom_smooth()
-print(p)
-```
-
-\column{0.45\linewidth}
+\column{0.5\linewidth}
 
 - Think $s$ = **smooth**
 - Want to model the covariates flexibly
 - Covariates and response not necessarily linearly related!
 - Want some "wiggles"
+
+\column{0.5\linewidth}
+
+```{r wsmooths, fig.width=8, fig.height=8}
+p <- p + geom_smooth()
+print(p)
+```
 
 \columnsend
 
@@ -160,6 +163,13 @@ print(p)
 
 \columnsbegin
 \column{0.55\linewidth}
+
+- Want a line that is "close" to all the data
+- Don't want interpolation -- we know there is "error"
+- Balance between interpolation and "fit"
+
+
+\column{0.45\linewidth}
 
 ```{r wiggles, fig.height=8, fig.width=8, echo=FALSE}
 # hacked from the example in ?gam
@@ -178,12 +188,6 @@ curve(f2,0,1, col="blue", ylim=ylim)
 points(dat$x2, dat$y-mean(dat$y))
 
 ```
-
-\column{0.45\linewidth}
-
-- Want a line that is "close" to all the data
-- Don't want interpolation -- we know there is "error"
-- Balance between interpolation and "fit"
 
 \columnsend
 
@@ -323,7 +327,7 @@ Visually:
 How do we do this mathematically?
 
 - Derivatives!
-- (Calculus *was* a useful class afterall!)
+- (Calculus *was* a useful class after all!)
 
 ## Wiggliness by derivatives
 
@@ -379,7 +383,7 @@ Call $S$ the **penalty matrix**
 
 - $\boldsymbol{\beta}^\text{T}S\boldsymbol{\beta}$ measures wigglyness
 - "Likelihood" measures closeness to the data
-- Penalise closeness to the data...
+- Penalize closeness to the data...
 - Use a **smoothing parameter** to decide on that trade-off...
   - $\lambda \beta^\text{T}S\beta$
 - Estimate the $\beta_k$ terms but penalise objective
@@ -414,7 +418,6 @@ curve(f2,0,1, col="blue", add=TRUE)
   
 ![REML smoothness selection](remlgcv.png)
 
-
 ## Maximum wiggliness
 
 - We can set **basis complexity** or "size" ($k$)
@@ -428,11 +431,10 @@ More on this in a bit...
 
 ## GAM summary
 
-- Straight lines suck --- the world is not linear & we want **wiggles**
+- Straight lines suck --- the world is not linear --- we want **wiggles**
 - Use little functions (**basis functions**) to make big functions (**smooths**)
 - Need to make sure your smooths are **wiggly enough**
 - Use a **penalty** to trade off wiggliness/generality 
-
 
 # Fitting GAMs in practice
 
@@ -449,7 +451,7 @@ where $\epsilon_i \sim N(0, \sigma^2)$
 Let's pretend that $y_i \sim \text{Normal}$
 
 - linear predictor: `formula = y ~ s(x) + s(w)`
-- response distribution: `family=gaussian()`
+- response distribution: `family = gaussian()`
 - data: `data=some_data_frame` 
 
 `method="REML"` uses REML for smoothness selection (default is `"GCV.Cp"`)
@@ -501,7 +503,7 @@ gam.check(norm_model_1)
 
 ## Checking basis size --- `gam.check()`
 
-```{r gam_check_norm2, fig.keep="none", include=TRUE,echo=TRUE, fig.width=15,fig.align="center"}
+```{r gam_check_norm2, fig.keep="none", include=TRUE,echo=TRUE, fig.width=15, fig.align="center"}
 norm_model_2 <- gam(y_norm ~ s(x1, k=12) + s(x2, k=4), method = "REML")
 gam.check(norm_model_2)
 ```
@@ -546,6 +548,7 @@ library("cowplot")
 theme_set(theme_bw())
 opts_chunk$set(cache=TRUE, echo=FALSE)
 ```
+
 ## Model selection
 
 Model (or variable) selection --- and important area of theoretical and applied interest
@@ -561,7 +564,7 @@ We seek a subset of covariates that improves *interpretability* and *prediction 
 
 Smoothing parameter estimation allows selection of a wide range of potentially complex functions for smooths...
 
-But, cannot remove a term entirely from the model because the penalties used act only on the *range space* of a spline basis. The *null space* of the basis is unpenalised.
+But, cannot remove a term entirely from the model because the penalties used act only on the *range space* of a spline basis. The *null space* of the basis is unpenalized.
 
 - **Null space** --- the basis functions that are smooth (constant, linear)
 - **Range space** --- the basis functions that are wiggly
@@ -696,9 +699,9 @@ Nychka (1988) showed that standard Wahba/Silverman type Bayesian confidence inte
 
 ## Confidence intervals for smooths
 
-Marra & Wood (2012) extended this theory to the generalised case and explain where the coverage properties failed:
+Marra & Wood (2012) extended this theory to the generalized case and explain where the coverage properties failed:
 
-*Musn't over-smooth too much, which happens when $\lambda_j$ are over-estimated*
+*Must not over-smooth too much, which happens when $\lambda_j$ are over-estimated*
 
 Two situations where this might occur
 
@@ -708,7 +711,7 @@ Two situations where this might occur
 
 ## Don't over-smooth
 
-> In summary, we have shown that Bayesian componentwise variable width intervals... for the smooth components of an additive model **should achieve close to nominal *across-the-function* coverage probability**, provided only that we do not over-smooth so heavily... Beyond this  requirement not to oversmooth too heavily, the results appear to have rather weak dependence on smoothing parameter values, suggesting that the neglect of smoothing parameter  variability  should  not  significantly  degrade  interval  performance.
+> In summary, we have shown that Bayesian component-wise variable width intervals... for the smooth components of an additive model **should achieve close to nominal *across-the-function* coverage probability**, provided only that we do not over-smooth so heavily... Beyond this  requirement not to over-smooth too heavily, the results appear to have rather weak dependence on smoothing parameter values, suggesting that the neglect of smoothing parameter  variability  should  not  significantly  degrade  interval  performance.
 
 ## Confidence intervals for smooths
 
@@ -814,7 +817,7 @@ Hence in most instances you won't need to change the default `freq = FALSE` in `
 **mgcv** provides an `anova()` method for `"gam"` objects:
 
 1. Single model form: `anova(m1)`
-2. Multi model form: `anova(m1, m2, m3)`
+2. Multiple model form: `anova(m1, m2, m3)`
 
 ## anova() --- single model form
 

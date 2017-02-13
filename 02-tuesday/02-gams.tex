@@ -146,12 +146,12 @@
 
 \begin{frame}{Generalized additive models}
 
-\alert{Generalised additive nodels}
+\alert{Generalized additive models}
 
 \begin{itemize}
 \tightlist
 \item
-  Generalized --- conditiona distribution of \(y\) from (extended)
+  Generalized --- conditions distribution of \(y\) from (extended)
   exponential family of distributions
 \item
   Additive --- assume nothing more that separate model component sum
@@ -199,7 +199,7 @@ Conditional distribution of \(y_i | \mathbf{X}\)
 
 \end{frame}
 
-\begin{frame}[fragile]{WHat can we do?}
+\begin{frame}[fragile]{What can we do?}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -241,10 +241,10 @@ Conditional distribution of \(y_i | \mathbf{X}\)
 
 \end{frame}
 
-\begin{frame}{WHat does a GAM look like?}
+\begin{frame}{What does a GAM look like?}
 
 \[
-y_i = \beta_0 + \sum_j s_j(x_{ji}) + \epsilon_i
+y_i = \beta_0 + \sum_j s_j(x_{ji}) + \varepsilon_i
 \]
 
 where \(\epsilon_i \sim N(0, \sigma^2)\), \(y_i \sim \text{Normal}\)
@@ -259,7 +259,22 @@ Call the above equation the \textbf{linear predictor}
 \begin{frame}[fragile]{What are these \(s_j\)?}
 
 \columnsbegin
-\column{0.55\linewidth}
+
+\column{0.5\linewidth}
+
+\begin{itemize}
+\tightlist
+\item
+  Think \(s\) = \textbf{smooth}
+\item
+  Want to model the covariates flexibly
+\item
+  Covariates and response not necessarily linearly related!
+\item
+  Want some ``wiggles''
+\end{itemize}
+
+\column{0.5\linewidth}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -273,7 +288,15 @@ Call the above equation the \textbf{linear predictor}
 
 \begin{center}\includegraphics[width=0.7\linewidth]{02-gams_files/figure-beamer/smoothdat-1} \end{center}
 
-\column{0.45\linewidth}
+\columnsend
+
+\end{frame}
+
+\begin{frame}[fragile]{What are these \(s_j\)?}
+
+\columnsbegin
+
+\column{0.5\linewidth}
 
 \begin{itemize}
 \tightlist
@@ -287,14 +310,7 @@ Call the above equation the \textbf{linear predictor}
   Want some ``wiggles''
 \end{itemize}
 
-\columnsend
-
-\end{frame}
-
-\begin{frame}[fragile]{What are these \(s_j\)?}
-
-\columnsbegin
-\column{0.55\linewidth}
+\column{0.5\linewidth}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -305,20 +321,6 @@ Call the above equation the \textbf{linear predictor}
 
 \begin{center}\includegraphics[width=0.7\linewidth]{02-gams_files/figure-beamer/wsmooths-1} \end{center}
 
-\column{0.45\linewidth}
-
-\begin{itemize}
-\tightlist
-\item
-  Think \(s\) = \textbf{smooth}
-\item
-  Want to model the covariates flexibly
-\item
-  Covariates and response not necessarily linearly related!
-\item
-  Want some ``wiggles''
-\end{itemize}
-
 \columnsend
 
 \end{frame}
@@ -327,10 +329,6 @@ Call the above equation the \textbf{linear predictor}
 
 \columnsbegin
 \column{0.55\linewidth}
-
-\begin{center}\includegraphics[width=0.7\linewidth]{02-gams_files/figure-beamer/wiggles-1} \end{center}
-
-\column{0.45\linewidth}
 
 \begin{itemize}
 \tightlist
@@ -341,6 +339,10 @@ Call the above equation the \textbf{linear predictor}
 \item
   Balance between interpolation and ``fit''
 \end{itemize}
+
+\column{0.45\linewidth}
+
+\begin{center}\includegraphics[width=0.7\linewidth]{02-gams_files/figure-beamer/wiggles-1} \end{center}
 
 \columnsend
 
@@ -407,7 +409,7 @@ How do we do this mathematically?
 \item
   Derivatives!
 \item
-  (Calculus \emph{was} a useful class afterall!)
+  (Calculus \emph{was} a useful class after all!)
 \end{itemize}
 
 \end{frame}
@@ -447,7 +449,7 @@ Call \(S\) the \textbf{penalty matrix}
 \item
   ``Likelihood'' measures closeness to the data
 \item
-  Penalise closeness to the data\ldots{}
+  Penalize closeness to the data\ldots{}
 \item
   Use a \textbf{smoothing parameter} to decide on that trade-off\ldots{}
 \item
@@ -527,7 +529,7 @@ More on this in a bit\ldots{}
 \begin{itemize}
 \tightlist
 \item
-  Straight lines suck --- the world is not linear \& we want
+  Straight lines suck --- the world is not linear --- we want
   \textbf{wiggles}
 \item
   Use little functions (\textbf{basis functions}) to make big functions
@@ -560,7 +562,7 @@ Let's pretend that \(y_i \sim \text{Normal}\)
   linear predictor:
   \texttt{formula\ =\ y\ \textasciitilde{}\ s(x)\ +\ s(w)}
 \item
-  response distribution: \texttt{family=gaussian()}
+  response distribution: \texttt{family\ =\ gaussian()}
 \item
   data: \texttt{data=some\_data\_frame}
 \end{itemize}
@@ -795,7 +797,7 @@ potentially complex functions for smooths\ldots{}
 
 But, cannot remove a term entirely from the model because the penalties
 used act only on the \emph{range space} of a spline basis. The
-\emph{null space} of the basis is unpenalised.
+\emph{null space} of the basis is unpenalized.
 
 \begin{itemize}
 \tightlist
@@ -1007,11 +1009,11 @@ frequentist coverage properties.
 
 \begin{frame}{Confidence intervals for smooths}
 
-Marra \& Wood (2012) extended this theory to the generalised case and
+Marra \& Wood (2012) extended this theory to the generalized case and
 explain where the coverage properties failed:
 
-\emph{Musn't over-smooth too much, which happens when \(\lambda_j\) are
-over-estimated}
+\emph{Must not over-smooth too much, which happens when \(\lambda_j\)
+are over-estimated}
 
 Two situations where this might occur
 
@@ -1038,11 +1040,11 @@ Two situations where this might occur
 \begin{frame}{Don't over-smooth}
 
 \begin{quote}
-In summary, we have shown that Bayesian componentwise variable width
+In summary, we have shown that Bayesian component-wise variable width
 intervals\ldots{} for the smooth components of an additive model
 \textbf{should achieve close to nominal \emph{across-the-function}
 coverage probability}, provided only that we do not over-smooth so
-heavily\ldots{} Beyond this requirement not to oversmooth too heavily,
+heavily\ldots{} Beyond this requirement not to over-smooth too heavily,
 the results appear to have rather weak dependence on smoothing parameter
 values, suggesting that the neglect of smoothing parameter variability
 should not significantly degrade interval performance.
@@ -1180,7 +1182,7 @@ objects:
 \item
   Single model form: \texttt{anova(m1)}
 \item
-  Multi model form: \texttt{anova(m1,\ m2,\ m3)}
+  Multiple model form: \texttt{anova(m1,\ m2,\ m3)}
 \end{enumerate}
 
 \end{frame}
