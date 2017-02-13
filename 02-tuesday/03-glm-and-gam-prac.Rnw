@@ -1,0 +1,287 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{graphicx,xspace}
+\usepackage[utf8x]{inputenc}
+\newcommand{\R}{\textsf{R}\xspace}
+
+\usepackage{alltt}
+
+\usepackage[left=2cm,top=2cm,bottom=2cm,right=2cm]{geometry}
+\renewcommand{\abstractname}{Summary}
+\newenvironment{rcode}{\begin{footnotesize}\begin{alltt}}{\end{alltt}\end{footnotesize}}
+\newenvironment{rline}{\begin{small}\begin{ttfamily}}{\end{ttfamily}\end{small}}
+%\setlength{\parskip}{10pt} \setlength{\parindent}{0mm}
+
+\usepackage{/home/gavin/R/build/3.3-patched/share/texmf/tex/latex/Sweave}
+
+\usepackage{mathpazo}
+%\linespread{1.05}        % Palatino needs more leading (space between lines)
+\normalfont
+\usepackage[T1]{fontenc}
+
+\begin{document}
+\title{GLMs and GAMs}
+\author{Gavin Simpson}
+\date{February 2017}
+\maketitle
+
+\begin{abstract}
+In this lab you will be introduced to the fitting generalised linear models and generalised additive models using \R.
+\end{abstract}
+
+\section{\textit{Darlingtonia}: Logistic Regression}
+The first type of GLM we'll consider is a binomial GLM to fit a logistic regression model. We will use this model to test the hypothesis that the probability of wasp visitation at a leaf is related to the height of the left above the ground on specimens of the Cobra Lily (\textit{Darlingtonia californica}.
+
+Begin by loading the data in the data frame \texttt{wasp} and convert the variable \texttt{visited} to a logical (\texttt{TRUE} or \texttt{FALSE})
+
+<<load-darlingtonia>>=
+## read data, skip 1 as first row contains a comment
+wasp <- read.csv("darlingtonia.csv", skip = 1)
+wasp <- transform(wasp, visited = as.logical(visited))
+@
+
+A simple summary of the data is given by a contingency table
+
+<<show-data-darlington>>=
+with(wasp, table(visited))
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item How many observations in the data represent wasp visitations?
+\item How many observations in total are there? (Hint: we want to get the number of rows using \texttt{nrow()})
+\end{enumerate}
+
+Produce a plot of the data
+
+<<plot-darlingtonia>>=
+plot(visited ~ leafHeight, data = wasp)
+@
+
+An alternative visualisation can be achieved by plotting kernel density estimates of the distribution of leaf heights for visited and un-visited leaves. For this we'll use the \textsf{ggplot2} package. Load the package
+
+<<load-ggplot2>>=
+library("ggplot2")
+@
+
+The plot can produced using
+
+<<kde-darlingtonia>>=
+plt <- ggplot(wasp, aes(x = leafHeight, colour = visited)) +
+    geom_density()
+plt
+@
+
+\subsection*{Q and A}
+The kernel density estimates are a smooth representation of the density of the data at values of leaf height. These are a smoother version of a histogram and give an approximation of the distribution of values in a data set.
+
+\begin{enumerate}
+\item Describe the pattern shown in the figure you just drew.
+\item What does this plot suggest in terms of our ability to discriminate or predict which leaves will be visited by wasps given their height above the ground?
+\end{enumerate}
+
+We'll now fit the logistic regression (binomial GLM with logit link function)
+
+<<fit-model-darlingtonia>>=
+## fit a logistic regression
+mod <- glm(visited ~ leafHeight, data = wasp, family = binomial)
+@
+
+A likelihood ratio test can be performed using the \texttt{anova()} method
+
+<<anova-darlingtonia>>=
+anova(mod, test = "LRT")
+@
+
+\subsection*{Q and A}
+Using the likelihood ratio test output, answer the following question:
+
+\begin{enumerate}
+\item Does wasp visitation of leaves depend on the height of the leaf?
+\end{enumerate}
+
+The full model summary can be produced using the \texttt{summary()} method
+
+<<summary-model-darlingtonia>>=
+## summary
+summary(mod)
+@
+
+\subsection*{Q and A}
+Using the likelihood ratio test output, answer the following question:
+
+\begin{enumerate}
+\item Does wasp visitation of leaves depend on the height of the leaf?
+\end{enumerate}
+
+Next we'll produce a plot of the fitted response or model. We do this by predicting from the model for 100 equally spaced values that cover the range of \texttt{leafHeight}. The \texttt{predict()} function is used, and because we want predictions on the probability (0--1) scale we use \texttt{type = "response"}. The final two lines show an alternative way to plot the observations, as rug plots on the upper and lower margins of the figure.
+
+<<plot-fitted-model-darlingtonia>>=
+## predict for 100 equally spaced values
+newD <- with(wasp, data.frame(leafHeight = seq(min(leafHeight),
+                                max(leafHeight), length = 100)))
+pred <- predict(mod, newdata = newD, type = "response")
+
+## plot
+plot(pred ~ leafHeight, data = newD, type = "l", ylim = c(0,1),
+     ylab = "Probability of visitation",
+     xlab = "Leaf height (cm)")
+with(wasp, rug(leafHeight[visited == TRUE], side = 3, lwd = 1))
+with(wasp, rug(leafHeight[visited == FALSE], side = 1, lwd = 1))
+@
+
+Leave that plot for the moment. It would be useful to have confidence intervals on the fitted curve. We follow a similar recipe as before, predicting for the 100 new observations of \texttt{leafHeight}, but this time we want predictions on the scale of $\eta$, the linear predictor. The code below does the following things
+
+\begin{enumerate}
+\item We store the inverse of the link function in \texttt{ilogit}; we'll use this to map from the scale of $\eta$ back on the response scale later
+\item We predict for the new observations, this time using \texttt{type = "link"}, so the inverse link function hasn't been applied yet. We also ask for the standard errors of the predicted values, again on the scale of $\eta$
+\item \texttt{alpha} is our confidence limit ($1 - \alpha$, really)
+\item \texttt{crit} is the critical value of the $t$ distribution which we'll use as the multiple to scale the standard error by. This will be close to 1.96 for reasonably sized data sets
+\item Next, we convert the predicted values using \texttt{ilogit} on to the probability scale of the response, and create the confidence interval, mapping those on to the response scale as well
+\item The final two lines of code just add the upper and lower intervals to the plot you made earlier.
+\end{enumerate}
+
+<<confidence-intervals-darlingtonia>>=
+ilogit <- family(mod)$linkinv
+predl <- predict(mod, newdata = newD, type = "link", se.fit = TRUE)
+alpha <- 0.05
+crit <- qt(1 - (alpha/2), df = mod$df.residual)
+pred2 <- with(predl,
+              data.frame(fitted = ilogit(fit),
+                         upper = ilogit(fit + (crit * se.fit)),
+                         lower = ilogit(fit - (crit * se.fit)),
+                         leafHeight = newD$leafHeight))
+
+## plot
+lines(upper ~ leafHeight, data = pred2, lty = "dashed")
+lines(lower ~ leafHeight, data = pred2, lty = "dashed")
+@
+
+\section{Galap\'{a}gos species richness: Poisson GLM}
+
+Now we'll look at the Galap\'{a}gos species richness data. Load the data and show the first few lines of data
+
+<<gala>>=
+gala <- read.csv("galapagos.csv")
+head(gala)
+@
+
+Produce a plot of the species richness versus predictor variables. Repeat this for other predictor variables/
+
+<<plot-gala>>=
+plot(Species ~ Elevation, data = gala)
+@
+
+In the next few code blocks you'll fit a linear model and a generalised linear model to the data and look at the residuals.
+
+<<linear-model-gala>>=
+gala.lm1 <- lm(Species ~ Area + Elevation + Nearest + Scruz + Adjacent,
+               data = gala)
+summary(gala.lm1)
+@
+
+<<plot-resids-linear-gala>>=
+plot(resid(gala.lm1) ~ predict(gala.lm1))
+abline(h = 0)
+@
+
+<<fit-poisson-glm-gala>>=
+gala.glm1 <- glm(Species ~ Area + Elevation + Nearest + Scruz + Adjacent,
+                 data = gala, family = poisson)
+summary(gala.glm1)
+@
+
+<<compare-resids-gala>>=
+layout(matrix(1:2, ncol = 2))
+plot(resid(gala.lm1) ~ predict(gala.lm1))
+abline(h = 0)
+plot(resid(gala.glm1) ~ predict(gala.glm1, type = "response"))
+abline(h = 0)
+layout(1)
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Using the outputs generated in this section, comment on the differences in fit between the linear and the Poisson model.
+\item Do the predictor variables appear to be releated to the species richness of Galap\'{a}gos islands? Which variables in particular?
+\end{enumerate}
+
+\section{Generalised additive models}
+
+We now return to \textit{Darlingtonia} example and refit the logistic regression model used penalised regression splines (binomial GAM with logit link function)
+
+<<fit-gam-darlingtonia>>=
+library("mgcv")                       # load mgcv
+## fit a GAM logistic regression
+m1 <- gam(visited ~ s(leafHeight), data = wasp, family = binomial, method = "REML")
+summary(m1)
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item How many effective degrees of freedom are used by the smooth of \texttt{leafHeight}? What does this suggest about the shape of the fitted function?
+\item Is their evidence to reject the null hypothesis that smooth of \texttt{leafHeight} is a flat function?
+\item How much variation in the response is expain by the fitted model?
+\end{enumerate}
+
+Our checks include looking at the basis dimension and producing some diagnostics plots for the fitted model. These can be done using the \texttt{gam.check()} function:
+
+<<gam-check, fig=true>>=
+gam.check(m1)
+@
+
+For binomial models the figures on the right, especially the top right are useless. But the ones on the left have some utility, especially the QQ-plot.
+
+\subsection*{Q and A}
+\begin{enumerate}
+  \item Looking at the QQ-plot, do the residuals appear to follow the theortetical distribution?
+  \item Look at the output printed to the console; is the default basis size sufficient?
+\end{enumerate}
+
+We can now plot the fitted smooth
+
+<<gam-plot, fig=true>>=
+plot(m1, scheme = 1, seWithMean = TRUE, unconditional = TRUE)
+@
+
+Remember, this is plot is drawn on the logit scale. We can use \texttt{predict()} as before to create a plot of the fitted model and confidence interval on the probability scale. In the last line, we add on the fitted GLM line for comparison
+
+<<plot-fitted-gam-darlingtonia, fig=true>>=
+pgam <- predict(m1, newdata = newD, type = "response")
+
+## plot
+plot(pgam ~ leafHeight, data = newD, type = "l", ylim = c(0,1),
+     ylab = "Probability of visitation",
+     xlab = "Leaf height (cm)")
+with(wasp, rug(leafHeight[visited == TRUE], side = 3, lwd = 1))
+with(wasp, rug(leafHeight[visited == FALSE], side = 1, lwd = 1))
+
+ilogit <- family(m1)$linkinv
+pgaml <- predict(m1, newdata = newD, type = "link", se.fit = TRUE)
+crit <- 1.96
+pgam2 <- with(pgaml,
+              data.frame(fitted = ilogit(fit),
+                         upper = ilogit(fit + (crit * se.fit)),
+                         lower = ilogit(fit - (crit * se.fit)),
+                         leafHeight = newD$leafHeight))
+
+## plot
+lines(upper ~ leafHeight, data = pgam2, lty = "dashed")
+lines(lower ~ leafHeight, data = pgam2, lty = "dashed")
+
+## add the fitted GLM model
+lines(pred ~ leafHeight, data = newD, col = "forestgreen")
+@
+
+Do we need the smoother? To compare with the GLM, we can fit that model using \textbf{mgcv}. We do need to refit the GAM using maximum likelihood though as REML is not appropriate when you want to compare models with different fixed effects
+
+<<fit-gam-glm-darlingtonia>>=
+## refit GAM using ML
+m1a <- gam(visited ~ s(leafHeight), data = wasp, family = binomial, method = "ML")
+## fit a GLM logistic regression using mgcv
+m2 <- gam(visited ~ leafHeight, data = wasp, family = binomial, method = "ML")
+anova(m2, m1a, test = "LRT")
+@
+
+In realty we probably didn't need to do that; the fact that the smoothness penalty resulted in a model with 2 degrees of freedom is strong evidence against the parametric model.
+
+\end{document}
