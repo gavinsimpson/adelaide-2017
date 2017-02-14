@@ -1,0 +1,473 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{xspace,graphicx}
+\usepackage[utf8x]{inputenc}
+\newcommand{\rda}{\texttt{rda()}\xspace}
+\newcommand{\cca}{\texttt{cca()}\xspace}
+\renewcommand{\abstractname}{Summary}
+\newcommand{\R}{\textsf{R}\xspace}
+\newcommand{\vegan}{\texttt{vegan}\xspace}
+
+\usepackage[left=2cm,top=2cm,bottom=2cm,right=2cm]{geometry}
+\renewcommand{\abstractname}{Summary}
+
+\setkeys{Gin}{width=0.6*\textwidth}
+
+%opening
+\title{Basic Ordination }
+\author{Gavin Simpson}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This practical will use the PONDS dataset to demonstrate methods of indirect gradient analysis (PCA, CA, and DCA) of species and environmental data. The file pondsenv.csv contains the species data (48 taxa) and pondsenv.csv contains the transformed environmental variables (15 variables) for 30 sites. You will use \R and the \vegan package to analyse these data using a variety of indirect ordination graphical display techniques.
+\end{abstract}
+
+<<echo=false,results=hide>>=
+options(width = 65, digits = 4)
+myDots <- "...."
+library(mgcv)
+@
+
+\section{Principal Components Analysis}
+Principal Components Analysis (PCA) is a common statistical methods and is implemented in \R by two functions in the standard installation (\texttt{prcomp()} and \texttt{princomp()}), as well as in numerous guises as part of other add-on packages. In this practical you will use the implimentation provided in the \vegan package by Jari Oksanen. This is because you will be using \vegan for the direct gradient analysis class and the \vegan package provides a rich set of analysis and graphical tools that can be applied to a variety of ordination techniques. As such, you only have to learn a single set of commands to run a wide variety of analyses.
+
+Start \R and load the \vegan package for use. Read in the two data sets and the associated bstick function file:
+
+<<echo=true, fig=false>>=
+library(vegan)
+pondsenv <- read.csv("pondsenv.csv")
+pondsdiat <- read.csv("ponddiat.csv")
+bstick <- function(n, tot.var = 1) rev(cumsum(tot.var/n:1)/n)
+@
+
+PCA is fitted using the \rda function, which was designed to implement Redundancy Analysis (RDA). RDA is the constrained form of PCA so running \rda without any constraints yields PCA. Run a PCA of the Ponds environmental data using \rda and display the results. The \texttt{scale} argument to \rda scales the variables to zero mean and unit standard deviation. This results in a PCA on a correlation rather than covariance matrix. This is appropriate in situations where the variables are measured in different units, as is the case with the hydrochemical data analysed here. It may also be appropriate in situations where species abundance (counts etc.) are being analysed and you wish to focus on explaining variation in all species not just the most abundant ones.
+
+<<echo=true, fig=false>>=
+pondspca <- rda(pondsenv, scale = TRUE)
+pondspca
+@
+
+The ouput shows the results of the PCA, displaying the eigenvalues for each axis. Note that these values differ from the ones report by CANOCO, which scales the total variance (called inertia in \vegan) to 1, \rda does not. To achieve a comparable set of eigenvalues simply divide each eigenvalue (stored within \texttt{pondspca\$CA\$eig}) by the total inertia (\texttt{pondspca\$tot.chi}). This conveniently gives the proportions of the inertia (variance) explained by each axis.
+<<echo=true>>=
+pondspca$CA$eig / pondspca$tot.chi
+@
+\subsection*{Q and A}
+\begin{enumerate}
+\item What are the values of $\lambda_1$ and $\lambda_1$, the eigenvalues for axes one and two?
+\item How much of the total variance in the environmental data is explained by axes one and two individually and cummulatively?
+\end{enumerate}
+
+For a longer print out of the results of the PCA and to display the species and site scores a \texttt{summary} method is available. This truncates the output to the first six axes but this can be changed using the \texttt{axes} argument.
+
+<<echo=true,eval=FALSE>>=
+summary(pondspca, scaling = 2)
+@
+<<echo=false,eval=true>>=
+out <- capture.output(summary(pondspca))
+cat(out[1:13], myDots, out[18:27], myDots, out[43:48], myDots, sep = "\n")
+@
+The use of the \texttt{scaling} argument is redundant in this case as the default is \texttt{scaling = 2} but it is included here to illustrate a common argument that can be specified by the user. \texttt{scaling = 2} relates to the option ``inter-species correlations'' in CANOCO. \rda does not allow the option to post transform the species scores (by dividing by the standard deviation) but this is easy to achieve in \R.
+
+<<echo=true,eval=false>>=
+apply(scores(pondspca, choices = 1:6, display = "species"), 2,
+      function(x) x / sd(x))
+@
+<<echo=false,eval=true>>=
+out <- capture.output(apply(scores(pondspca, choices = 1:6, display = "species"), 2, function(x) x / sd(x)))
+cat(out[1:5], myDots, sep = "\n")
+@
+\subsection{The meaningful components}
+To assess the likely statistical significance of the axes, it is useful to both plot a scree plot and to compare the sizes of the actual PCA axes with the sizes expected under a random (null) model, such as the broken stick distribution. A scree plot of the results of a PCA can be produced using the \texttt{plot()} method (Figure \ref{pca_screeplot}).
+
+<<echo=true,eval=false>>=
+plot(pondspca$CA$eig, type = "o", col = "red",
+     xlab = "PCA Axis", ylab = "Variance",
+     main = "Scree plot for the PCA of the Ponds data")
+@
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,fig=true>>=
+plot(pondspca$CA$eig, type = "o", col = "red",
+     xlab = "PCA Axis", ylab = "Variance",
+     main = "Scree plot for the PCA of the Ponds data")
+@
+\caption{\label{pca_screeplot}Scree plot of the eigenvalues obtained from a PCA of the Ponds hydrochemistry data.}
+\end{center}
+\end{figure}
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item How many axes does the scree plot suggest are significant?
+\end{enumerate}
+
+The broken-stick distribution is simple to calculate and the expected values of the \emph{pieces} of the broken stick are given by Equation \ref{bstick_eqn}:
+\begin{equation}
+\label{bstick_eqn}
+E_j=\frac{1}{n}\sum_{x=j}^n \frac{1}{x}
+\end{equation}
+where $E_j$ is the expected value of the $j^{th}$ piece, and n is the number of pieces (axes in this case). Our \texttt{bstick()} function implements the broken stick distrbution. \texttt{bstick()} takes two arguments, the number of pieces (\texttt{n}) and the total variance (\texttt{tot.var}, defaults to 1). As \rda does not scale the eigenvalues to 1, which would give a total variance of 1, \texttt{tot.var} should be set at 15.
+<<echo=true>>=
+bstick.env <- bstick(15, tot.var = 15)
+bstick.env
+pondspca
+@
+
+Compare the variances of the pieces expected under the broken-stick model with the eigenvalues obtained from the reaults of the PCA of the Ponds environmental data. The broken-stick distribution represents the null model, so significant axes are those that have an eigenvalue that exceeds the expected value for the $j^{th}$ piece of the broken-stick distribution.
+\subsection*{Q and A}
+\begin{enumerate}
+\item How many axes does the broken-stick distribution suggest are significant?
+\end{enumerate}
+
+A simple way to visualise which axes have eigenvalues that are greater than those expected under the null model is to overlay the values for the broken-stick distribution on to a scree plot of the PCA eigenvalues (Figure \ref{bstick}).
+
+<<echo=true,eval=false>>=
+plot(bstick.env, type = "o", lty = "dotted",
+     ylim = range(bstick.env, pondspca$CA$eig),
+     xlab = "PCA Axis", ylab = "Inertia",
+     main = "Ponds Environmental Data: Bstick")
+points(pondspca$CA$eig, type = "o", col = "red")
+@
+\begin{figure}[t]
+\begin{center}
+<<echo=false,fig=true>>=
+plot(bstick.env, type = "o", lty = "dotted",
+     ylim = range(bstick.env, pondspca$CA$eig),
+     xlab = "PCA Axis", ylab = "Inertia",
+     main = "Ponds Environmental Data: Bstick")
+points(pondspca$CA$eig, type = "o", col = "red")
+@
+\caption{\label{bstick}Scree plot of the eigenvalues obtained from a PCA of the Ponds hydrochemistry data. The solid line represents the observed eigenvalues. The dotted line indicates the expected values under a null model obtained from the broken-stick distribution.}
+\end{center}
+\end{figure}
+
+\subsection{PCA Biplots}
+Two types of biplot may be used to visualise the results of a PCA; a distance biplot and a correlation biplot. In this analysis of the Ponds environmental data, the focus is on the correlations between the environmental variables (``species'' in common parlance, even though environmental data are being analysed!), therefore, a correlation biplot is appropriate. The type of biplot produced is determined by the scaling applied to one or both of the species and site scores. For a correlation biplot, scaling 2 is used, in which the scores for the $k^{th}$ species (the $k^{th}$ eigenvector) are scaled to length $\sqrt{\lambda_k}$\footnote{The scores for the $k^{th}$ are then proportional to the square root of the $k^{th}$ eigenvalue.}, whilst the sites are left unscaled. Biplots are easily obtained using the \texttt{plot()} method of \rda.
+<<echo=true,eval=false>>=
+plot(pondspca, scaling = 2)
+@
+Species are traditionally represented by biplot arrows
+<<echo=true,eval=false>>=
+env.sc <- scores(pondspca)$species
+plot(pondspca, scaling = 2)
+arrows(0, 0, env.sc[,1] * 0.85, env.sc[,2] * 0.85,
+       col = "red", length = 0.05)
+@
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,fig=true,width=10,height=5>>=
+oldpar <- par(mfrow = c(1,2))
+env.sc <- scores(pondspca)$species
+plot(pondspca, scaling = 2)
+title(main = "a")
+plot(pondspca, scaling = 2)
+arrows(0, 0, env.sc[,1] * 0.85, env.sc[,2] * 0.85,
+       col = "red", length = 0.05)
+title(main = "b")
+par(oldpar)
+@
+\caption{\label{pca_biplot}PCA correlation biplot of the Ponds environmental data, with species represented by points (a) or with biplot arrows (b)}
+\end{center}
+\end{figure}
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item What are the main chemical gradients represented by axes one and two?
+\item Are there any outliers sites on axes one or two?
+\end{enumerate}
+
+Interpretting ordination diagrams can be improved by enhancing the plot with additional information, commonly in the form of response surfaces. Function \texttt{ordisurf()} generates response surfaces using a generalised additive model (GAM) to predict a response variable for the ordination configuration (Figure \ref{pca_surface}). The irregular configuration is then interpolated to a regular grid using linear interpolation routines.
+
+<<echo=true,eval=false>>=
+plot(pondspca, scaling = 2, display = "sites")
+ordisurf(pondspca, pondsenv$TP, main = "temp", add = TRUE)
+@
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,fig=true>>=
+plot(pondspca, scaling = 2, display = "sites")
+invisible(ordisurf(pondspca, pondsenv$TP, main = "temp", add = TRUE))
+@
+\caption{\label{pca_surface}PCA correlation biplot of the Ponds environmental data overlayed with a GAM response surface of the TP values recorded at each pond.}
+\end{center}
+\end{figure}
+
+Firstly, the biplot is redisplayed with the species suppressed (\texttt{display = "sites"}), then a response surface for the variables TP (Total Phosphorus) produced using \texttt{ordisurf()}. The argument \texttt{add = TRUE)} is used to add the response surface to the existing plot without clearing the graphics device first.
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Make response surface plots for selected variables.
+\end{enumerate}
+
+\section{Correspondence Analysis}
+Species often show unimodal responses to environmental gradients. PCA assumes a linear response model and as such may not be best suited to the analysis of species data exhibiting unimodal responses as PCA is unlikely to fit the data adequately. Correspondence Analysis (CA) is an indirect ordination technique that assumes an \emph{idealised} unimodal response in species. The response is idealised in that it assumes that species responses are symmetrical, of equal height and width and are equally spaced.
+
+A CA is performed using function \cca, also in package \texttt{vegan}. CA can produced unstable results when there are rare species or odd samples in the data set, therefore, rare species tend to be downweighted. Function \texttt{downweight()} provides this capability, replicating the behaviour of CANOCO.
+
+<<echo=true>>=
+pondsca <- cca(downweight(pondsdiat))
+pondsca
+@
+<<echo=true,eval=false>>=
+summary(pondsca)
+@
+<<echo=false,eval=true>>=
+out <- capture.output(summary(pondsca))
+cat(out[1:13], myDots, out[23:35], myDots, out[82:88], myDots, sep = "\n")
+@
+\subsection*{Q and A}
+\begin{enumerate}
+\item What are the values of $\lambda_{1-4}$, the eigenvalues for axes one to four?
+\item How much of the total variance (inertia) in the species data is explained by axes 1 and 2, individually and combined?
+\end{enumerate}
+
+\subsection{The meaningful components}
+As with PCA, a scree plot is a useful way of visualising the important components for further analysis. Comprison of the eignevalues of the CA with those expected under the broken-stick model is also useful (Figure \ref{ca_bstick}) . To apply the broken-stick model we need to know the total variance or inertia in the data. This is stored within the result of the CA in the form of \texttt{pondsca\$tot.chi}.
+<<echo=true>>=
+pondsca$tot.chi
+(bstick.diat <- bstick(29, tot.var = 4.996))
+(ca.eig <- pondsca$CA$eig)
+@
+<<echo=true,fig=false,eval=false>>=
+plot(bstick.diat, type = "o", lty = "dotted",
+     ylim = range(bstick.diat, ca.eig),
+     xlab = "CA Axis", ylab = "Inertia",
+     main = "Ponds Diatom Data: Bstick")
+points(ca.eig, type = "o", col = "red")
+@
+\begin{figure}[t]
+\begin{center}
+<<echo=false,fig=true>>=
+plot(bstick.diat, type = "o", lty = "dotted",
+     ylim = range(bstick.diat, ca.eig),
+     xlab = "CA Axis", ylab = "Inertia",
+     main = "Ponds Diatom Data: Bstick")
+points(ca.eig, type = "o", col = "red")
+@
+\caption{\label{ca_bstick}Scree plot of the eigenvalues obtained from a CA of the Ponds diatom data. The solid line represents the observed eigenvalues. The dotted line indicates the expected values under a null model obtained from the broken-stick distribution.}
+\end{center}
+\end{figure}
+\subsection*{Q and A}
+\begin{enumerate}
+\item How many axes are significant when compared with the null model?
+\end{enumerate}
+
+\subsection{CA Biplots}
+Biplots, or \emph{joint plots} as they are commonly called in the literature, are generate by plotting the site and species scores obtained from CA of the species matrix. As with PCA, these scores can be scaled so as to focus the resulting diagram on relationships among sites (\texttt{scaling = 1}) or species (\texttt{scaling = 2}) or some compromise of the two {\texttt{scaling = 3}). So-called \emph{biplot} and \emph{Hill's} scaling are the two \emph{types} of scaling that can be applied to three scalings mentioned above. These two types dictate how information on the species data is gleaned from the resulting biplot. With biplot scaling, the biplot rule applies and is most suited for short gradients. Hill's scaling equalises the average niche breadth for all axes and allows, for long gradients, interpretation via the distance rule. Consult your class notes for the two different rules. The \texttt{plot()} method for \cca produces a biplot of the results of a CA (Figure \ref{ca_biplot}).
+<<echo=true,eval=false>>=
+plot(pondsca)
+@
+\begin{figure}[t]
+\begin{center}
+<<echo=false,eval=true,fig=true>>=
+plot(pondsca)
+@
+\caption{\label{ca_biplot}Correspondence Analysis biplot of the Ponds diatom data set.}
+\end{center}
+\end{figure}
+The \texttt{display} argument for the \texttt{plot()} method can be used to control what aspects of the results are plotted on the biplot. There are a number of valid options for \texttt{display}, but the most useful here are \texttt{"species"} and \texttt{"sites"}.
+<<echo=true,eval=false>>=
+plot(pondsca, display = "species")
+plot(pondsca, display = "sites")
+@
+\subsection*{Q and A}
+\begin{enumerate}
+\item Are there outliers in the plot (species or samples)?
+\item Is there an arch apparent in the biplot?
+\end{enumerate}
+
+It is useful to enhance these plots with further information to aid interpretation. One useful addition is to overlay measures of diversity on to the biplot. Diversity indices can be calculated using the \texttt{diversity()} function of \vegan. One particular measure of diverist is Hill's $\mathrm{N_2}$, which gives the effective number of occurences of a species across all sites or the effective number of species in an individual plot. Hill's $\mathrm{N_2}$ is equivalent to the Inverse Simpson diversity measure we we tell \texttt{diversity()} to use. The third argument is what Jari Oksanen refers to as the MARGIN; rows (1) or columns (2). For the effective number of occurences of a particular species then the calculation should be over the columns, but rows should be used to calculate the effective numbers of species per sample.
+
+<<echo=true,eval=true>>=
+spp.n2 <- renyi(t(pondsdiat), scales = 2, hill = TRUE)
+site.n2 <- renyi(pondsdiat, scales = 2, hill = TRUE)
+@
+
+Having calculated the relevant diversity information, this can be used to augment the biplot. A simple way to use these data is to scale the plotting symbol according to the Hill's $\mathrm{N_2}$ value, using the \texttt{cex} graphical parameter. The \texttt{identify} function is used to label the plotting sybols after plotting (Figure \ref{ca_biplot2}). Right click the graph when you are finished labelling.
+
+<<echo=true,eval=false>>=
+ca.plot <- plot(pondsca, type = "n")
+points(pondsca, display = "species", cex = 0.3 * spp.n2)
+identify(ca.plot, what = "species", col = "red", ps = 10)
+plot(pondsca, type = "n")
+points(pondsca, display = "sites", cex = 0.5 * site.n2)
+identify(ca.plot, what = "sites", col = "red", ps = 10)
+@
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,eval=true,fig=true>>=
+plot(pondsca, type = "n")
+points(pondsca, display = "species", cex = 0.3 * spp.n2)
+@
+\caption{\label{ca_biplot2}Correspondence Analysis biplot of the Ponds diatom data set. Points are scaled relative to the Hill's $\mathrm{N_2}$ value for each species.}
+\end{center}
+\end{figure}
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Are outlying species common or rare?
+\item Are outlying samples dominated by a few, rare, species?
+\item What effect does the choice of scaling have on the ordination plots? Use the code below to display the biplots with two different scalings.
+\end{enumerate}
+
+<<echo=true,eval=false>>=
+oldpar <- par(mfrow = c(1,2), pty = "s")
+plot(pondsca, scaling = 2, main = "Inter-species distance & Biplot scaling")
+plot(pondsca, scaling = -1, main = "Inter-sample distance & Hills scaling")
+par(oldpar)
+@
+\begin{figure}[t]
+\begin{center}
+<<echo=false,eval=true,fig=true,width=10,height=5>>=
+oldpar <- par(mfrow = c(1,2), pty = "s")
+plot(pondsca, scaling = 2, main = "Inter-species distance & Biplot scaling")
+plot(pondsca, scaling = -1, main = "Inter-sample distance & Hills scaling")
+par(oldpar)
+@
+\caption{\label{ca_comparison}The effect of scaling on CA biplots of the Ponds diatom data.}
+\end{center}
+\end{figure}
+
+\section{Detrended Correspondence Analysis}
+Correspondence analysis has been shown to be a more robust method for community ordination, where species show unimodal, rather than linear, responses to the underlying gradients. However, when analysing data sets with long gradients, CA was prone the \emph{arch} effect, where by ordination configurations are curved within ordination space---the result of attempting to map non-linearities into Euclidean space. Whilst still interpretable, these curvatures prevent the accurate reconstruction of the underlying gradients from the CA results. Detrended Correspondence Analysis (DCA) was developed to address the following issues:
+
+\begin{enumerate}
+\item Single long gradients appear as arched configurations in the ordination,
+\item At the ends of the gradients, sites are packed more closely together than at the centre of the space.
+\end{enumerate}
+
+DCA was oringinally implemented in the DECORANA computer program. the \texttt{decorana()} function in \vegan fits DCA models as implemented in DECORANA.
+
+<<echo=true,fig=false>>=
+pondsdca <- decorana(downweight(pondsdiat))
+pondsdca
+@
+
+\subsection{Q and A}
+\begin{enumerate}
+\item What are the gradient lengths for the four reported axes?
+\item What do these values indicate about the likely species responses along these gradients?
+\item What are the values for $\lambda_{1-4}$?
+\item How much of the total variation is explained by the first 2 axes, and all four reported axes?
+\end{enumerate}
+The total variance (inertia) in the DCA is the same as for CA (4.996 for the Ponds diatom data set). The eigenvalues are stored in \texttt{pondsdca\$evals}. To calculate the proportions explained individually be the reported axes, divide \texttt{pondsdca\$evals} by the total variance (4.996). The \texttt{cumsum()} function can be used to report the cumulative proportion of the variance explained by the four axes.
+<<echo=true>>=
+pondsdca$evals / 4.996
+cumsum(pondsdca$evals / 4.996)
+@
+
+Again, a more thorough output is achieved using the \texttt{summary()} method of \texttt{decorana()}, and a biplot of the results can be produced using the \texttt{plot()} method.
+<<echo=true,eval=false>>=
+summary(pondsdca)
+@
+<<echo=false,eval=true>>=
+out <- capture.output(summary(pondsdca))
+cat(out[1:19], myDots, out[66:72], myDots, sep = "\n")
+@
+A biplot of the results can be produced using the \texttt{plot()} method (Figure \ref{plot_dca}).
+<<echo=true,eval=false>>=
+plot(pondsdca)
+@
+\begin{figure}[t]
+\begin{center}
+<<echo=false,eval=true,fig=true>>=
+plot(pondsdca)
+@
+\caption{\label{plot_dca}Detrended Correspondence Analysis biplot of the Ponds diatom data set.}
+\end{center}
+\end{figure}
+
+\subsection{Additional indirect gradient analysis topics}
+This sections contains some additional exmaples of fitting some of the other indirect gradient analysis methods introduced in today's lecture. If you have time at the end of this practical then attempt some of these analyses. Don't worry if you don't have time, you can always refer back to this handout at a later date if you wish to give some of these methods a go.
+
+\subsubsection{Non-metric multidimensional scaling}
+Non-metric multidimensional scaling can be performed using \texttt{isoMDS()} in package \texttt{MASS}. It requires a dissimilarity matrix as an input argument. \texttt{vegdist()} can calculate these dissimilarity matrices, with the default option being Bray-Curtis dissimilarity. Function \texttt{metaMDS()} in \vegan implements helper functions that start the NMDS iterative algorithm at $k$ randomly selected start points and choose the best model fit (i.e. that reduces the stress the most). \texttt{metaMDS()} only requires a matrix of data as the function internally calculates the specified dissimilarity matrix for you. We will fit a NMDS model to the Ponds environmental data using Euclidean distances.
+
+<<>>=
+library(MASS)
+set.seed(123456)
+euclid.dis <- vegdist(pondsenv, "euclidean")
+nmds.env <- metaMDS(pondsenv, distance = "euclidean", trymax = 50)
+nmds.env
+@
+
+NMDS maps the observed distances on to the ordination space in a non-linear fashion. How well this mapping is achieved can be visualised using \texttt{stressplot()}, which draws a Shepard plot and the fit of the NMDS as a stepped line. \texttt{stressplot()} also displays two correlation statistics for the goodness of the fit. The correlation based on stress is $R^2=1-S^2$, and the ``fit-based'' correlation is the correlation between the fitted values, $\theta(d)$ and the original distances, $d$, which is the correlation between the stepped line and the points (Figure \ref{stressplot}).
+
+<<echo=true,eval=false>>=
+stressplot(nmds.env, euclid.dis)
+@
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,eval=true,fig=true>>=
+stressplot(nmds.env, euclid.dis)
+@
+\caption{\label{stressplot}Shepard plot comparing the original Euclidean distancesand the NMDS ordination-based distances between ponds calculated using the environmental data.}
+\end{center}
+\end{figure}
+
+To draw the ordination diagram for the NMDS model, \vegan provides a \texttt{plot()} method (Figure \ref{nmdsplot}):
+
+
+<<echo=true,eval=false>>=
+plot(nmds.env, type = "text")
+@
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,eval=true,fig=true>>=
+plot(nmds.env, type = "text")
+@
+\caption{\label{nmdsplot}NMDS ordination of the Euclidean distance between ponds calculated using the environmental data.}
+\end{center}
+\end{figure}
+
+\subsubsection{Comparing ordinations using Procrustes rotation}
+Two ordinations can be very similar but this similarity may be masked as a result of the two ordinations having different scalings, orientations and signs. Procrustes rotation is a good way of of comparing ordination configurations. \vegan has function \texttt{procrustes()}, which performs Procrustes rotation.
+
+<<>>=
+pondsenv.pro <- procrustes(nmds.env, pondspca, symmetric = TRUE)
+summary(pondsenv.pro)
+@
+
+The \texttt{plot()} method for \texttt{procrustes()} can produce two kinds of plots; 1) the ordination digram showing the comparison between the two configurations (Figure \ref{proOrd}), and 2) a residuals plot (Figure \ref{proResid}).
+
+<<echo=true,eval=false>>=
+par(mfrow = c(1,2))
+plot(pondsenv.pro, kind = "1")
+plot(pondsenv.pro, kind = "2")
+par(mfrow = c(1,1))
+@
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,eval=true,fig=true>>=
+plot(pondsenv.pro, kind = "1")
+@
+\caption{\label{proOrd}Procrustes superimposition plot, showing the differences between the NMDS configuration (circles) and that obtained from a a PCA (ends of the arrows) of the Ponds environmental data.}
+\end{center}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,eval=true,fig=true>>=
+plot(pondsenv.pro, kind = "2")
+@
+\caption{\label{proResid}Procrustes rotation residuals plot, showing the differences between the NMDS configuration and that obtained from a a PCA of the Ponds environmental data.}
+\end{center}
+\end{figure}
+
+The PROTEST method allows you to test whether the two configurations are significantly similar to one another by means of a permutation test.
+
+<<>>=
+set.seed(123456)
+pondsenv.prot <- protest(nmds.env, pondspca)
+pondsenv.prot
+@
+
+\end{document}
