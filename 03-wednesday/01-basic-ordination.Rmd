@@ -30,20 +30,229 @@ knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
 
 ```{r packages, echo = FALSE, results = "hide", message = FALSE}
 library("vegan")
-data(varespec)
-data(varechem)
+data(varespec, varechem)
 ```
 
 # Introduction
 
 ## Introduction
 
+- \alert{Ordination} comes from the German word *ordnung*, meaning to put things in order
+- This is exactly what we we do in ordination --- we arrange our samples along gradients by fitting lines and planes through the data that describe the main patterns in those data
+- Linear and unimodal methods
+- Principle Components Analysis (PCA) is a linear method --- most useful for environmental data or sometimes with species data and short gradients
+- Correspondence Analysis (CA) is a unimodal method --- most useful for species data, especially where non-linear responses are observed
 
+# Principal Components Analysis
 
-# Unconstrained Ordination
+## Ordination
 
-## Unconstrained Ordination
+- Regression gives us a basis from which to work
+- Instead of doing many regressions, do one with all the species data once
+- Only now we don't have any explanatory variables, we wish to uncover these underlying gradients
+- PCA fits a line through our cloud of data in such a way that it maximises the variance in the data captured by that line (i.e.~minimises the distance between the fitted line and the observations)
+- Then we fit a second line to form a plane, and so on, until we have one PCA line or axis for each of our species
+- Each of these subsequent axes is uncorrelated with previous axes --- they are \alert{orthogonal} --- so the variance each axis explains is uncorrelated
 
+## Principal Components Analysis
+
+![](pca_example_figure.pdf)
+
+## Vegetation in lichen pastures --- PCA
+
+Data are cover values of 44 understorey species recorded at 24 locations in lichen pastures within dry *Pinus sylvestris* forests
+
+```{r vare-pca-1, echo=FALSE, fig.width=8, fig.height=8}
+pca <- rda(decostand(varespec, method = "hellinger"), scale = TRUE)
+biplot(pca, scaling = "symmetric")
+```
+
+## Vegetation in lichen pastures --- PCA biplots
+
+\columnsbegin
+\column{0.5\linewidth}
+
+- Have two sets of scores
+    - Species scores
+    - Site scores
+         \end{enumerate}
+- Sample (species) points plotted close together have similar species compositions (occur together)
+- In PCA, species scores often drawn as arrows --- point in direction of increasing abundance
+- Species arrows with small angles to an axis are highly correlated with that axis
+
+\column{0.5\linewidth}
+
+```{r vare-pca-2, echo=FALSE, fig.width=8, fig.height=8}
+pca <- rda(decostand(varespec, method = "hellinger"), scale = TRUE)
+biplot(pca, scaling = "symmetric")
+```
+
+\columnsend
+
+## Eigenvalues
+
+Eigenvalues $\lambda$ are the amount of variance (inertia) explained by each axis
+
+```{r vare-pca-3, fig.width=8, fig.height=6, crop.plot=TRUE}
+head(eigenvals(pca), 6L)
+screeplot(pca, bstick = TRUE, type = "l", main = NULL)
+```
+
+# Correspondence Analysis
+
+## Correspondence Analysis
+
+## Vegetation in lichen pastures --- CA biplots
+
+\columnsbegin
+\column{0.5\linewidth}
+
+- Have two sets of scores
+    1. Species scores
+    2. Site scores
+- Sample (species) points plotted close together have similar species compositions (occur together)
+- In CA, species scores drawn as points --- this is the fitted optima along the gradients
+- Abundance of species declines in concentric circles away from the optima
+	  
+\column{0.5\linewidth}
+
+```{r vare-ca-1, echo=FALSE, fig.width=8, fig.height=8, crop.plot=TRUE}
+ca <- cca(varespec)
+plot(ca)
+```
+
+\columnsend
+
+## Vegetation in lichen pastures --- CA biplots
+
+- Species scores plotted as weighted averages of site scores, or
+- Site scores plotted as weighted averages of species scores, or
+- A symmetric plot
+
+```{r vare-ca-2, echo = FALSE, fig.show = "hold", fig.width=15, fig.height=5, crop.plot=TRUE, out.width="0.95\\linewidth"}
+layout(matrix(1:3, ncol = 3))
+plot(ca, scaling = "species")
+plot(ca, scaling = "sites")
+plot(ca, scaling = "symmetric")
+layout(1)
+```
+
+# Vegan usage
+
+## Vegan basics
+
+- The majority of vegan functions work with a single vector, or more commonly an entire data frame
+- This data frame may contain the species abundances
+- Where subsidiary data is used/required, these two are supplied as data frames
+- For example; the environmental constraints in a CCA
+- It is not a problem if you have all your data in a single file/object; just subset it into two data frames after reading it into R
+
+```{r vegan_subset, eval=FALSE}
+spp <- allMyData[, 1:20] ## columns 1-20 contain the species data
+env <- allMyData[, 21:26] ## columns 21-26 contain the environmental data
+```
+
+## Simple vegan usage
+
+First we start with a simple correspondence analysis (CA) to illustrate the basic features
+
+Here I am using one of the in-built data sets on lichen pastures
+
+For various reasons to fit a CA we use the `cca()` function
+
+Store the fitted CA in `ca1` and print it to view the results
+
+```{r ca_1_vegan}
+ca1 <- cca(varespec)
+ca1
+```
+
+## `scores()` & `scaling` in `cca()`, `rda()`
+
+- When we draw the results of many ordinations we display 2 or more sets of data
+- Can't display all of these and maintain relationships between the scores
+- Solution; scale one set of scores relative to the other
+- Controlled via the \texttt{scaling} argument
+    - `scaling = 1` --- Focus on species, scale site scores by $\lambda_i$
+    - `scaling = 2` --- Focus on sites, scale species scores by $\lambda_i$
+    - `scaling = 3` --- Symmetric scaling, scale both scores by $\sqrt{\lambda_i}$
+    - `scaling = -1` --- As above, but
+    - `scaling = -2` --- For `cca()` multiply results by $\sqrt{(1/(1-\lambda_i))}$
+    - `scaling = -3` --- this is Hill's scaling
+    - `scaling < 0` --- For `rda()` divide species scores by species' $\sigma$
+    - `scaling = 0` --- raw scores
+
+## Basic ordination plots
+
+\columnsbegin
+\column{0.6\linewidth}
+
+- Basic plotting can be done using the `plot()` method
+- `choices = 1:2` --- select which axes to plot
+- `scaling = 3` --- scaling to use
+- `display = c("sites","species")` --- which scores (default is both)
+- `type = "text"` --- display scores using labels or points (`"points"`)
+- Other graphics arguments can be supplied but the apply for all scores
+	
+\column{0.4\linewidth}
+
+```{r ca_biplot, fig.width=8, fig.height=8, crop.plot=TRUE}
+plot(ca1, scaling = "symmetric")
+```
+
+\columnsend
+
+# Non-Metric Multidimensional Scaling
+
+## Non-Metric Multidimensional Scaling
+
+- Aim is to find a low-dimensional mapping of dissimilarities
+- Similar idea to PCoA, but does not use the actual dissimilarities
+- NMDS attempts to find a low-dimensional mapping that preserves as best as possible the \alert{rank order} of the original dissimilarities ($d_{ij}$)
+- Solution with minimal \texttt{stress} is sought; a measure of how well the NMDS mapping fits the $d_{ij}$
+- Stress is sum of squared residuals of monotonic regression between distances in NMDS space ($d^*_{ij}$) \& $d_{ij}$
+- Non-linear regression can cope with non-linear responses in species data
+- Iterative solution; convergence is not guaranteed
+- Must solve separately different dimensionality solutions
+
+## Non-Metric Multidimensional Scaling
+
+- Use an appropriate dissimilarity metric that gives good gradient separation \alert{\texttt{rankindex()}}
+    - Bray-Curtis
+    - Jaccard
+    - Kulczynski
+- Wisconsin transformation useful; Standardize species to equal maxima, then sites to equal totals \alert{\texttt{wisconsin()}}
+- Iterative solution; use many random starts and look at the fits with lowest stress
+- Only conclude solution reached if lowest stress solutions are similar (Procrsutes rotation)
+- Fit NMDS for 1, 2, 3, \ldots dimensions; stop after a sudden drop in stress observed in a screeplot
+- NMDS solutions can be rotated at will; common to rotate to principal components
+- Also scale axes in half-change units; samples separated by a distance of 1 correspond, on average, to a 50% turnover in composition
+  
+## NMDS in vegan
+
+Vegan implements all these ideas via the \texttt{metaMDS()} wrapper
+
+```{r nmds1}
+data(dune)
+set.seed(10)
+(sol <- metaMDS(dune, trace = FALSE))
+```
+
+## NMDS in vegan
+
+If no convergent solutions, continue iterations from previous best solution
+
+```{r nmds2}
+(sol <- metaMDS(dune, previous.best = sol, trace = FALSE))
+```
+
+## NMDS in vegan
+```{r nmds3, fig.width=10, fig.height=5, fig.show="hold", out.width="0.9\\linewidth"}
+layout(matrix(1:2, ncol = 2))
+plot(sol, main = "Dune NMDS plot")
+stressplot(sol, main = "Shepard plot")
+layout(1)
+```
 
 ## Links
 
@@ -59,5 +268,4 @@ Unless indicated otherwise, this slide deck is licensed under a [Creative Common
   \ccby
 \end{center}
 
-## References
 
