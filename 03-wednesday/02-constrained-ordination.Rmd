@@ -47,7 +47,7 @@ We can view RDA as being the result of
 1. fitting a multiple regression to each species in turn using the set of covariates,
 2. then running PCA on the matrix of fitted values from those regressions
 
-These are regression models so work with them as if they were a linear model
+These are regression models so work with them as if they were linear models...
 
 But we have little theory, so all inference is done using \alert{permutation} tests
 
