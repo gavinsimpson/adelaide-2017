@@ -56,13 +56,17 @@ data(varespec, varechem)
 
 ## Principal Components Analysis
 
+![© HappyWaldo CC BY-SA](/home/gavin/work/teaching/adelaide/feb-2017/03-wednesday/Sherrin_footy.jpg)
+
+## Principal Components Analysis
+
 ![](pca_example_figure.pdf)
 
 ## Vegetation in lichen pastures --- PCA
 
 Data are cover values of 44 understorey species recorded at 24 locations in lichen pastures within dry *Pinus sylvestris* forests
 
-```{r vare-pca-1, echo=FALSE, fig.width=8, fig.height=8}
+```{r vare-pca-1, echo=FALSE, fig.width=8, fig.height=8, out.width="0.8\\linewidth", crop.plot=TRUE}
 pca <- rda(decostand(varespec, method = "hellinger"), scale = TRUE)
 biplot(pca, scaling = "symmetric")
 ```
@@ -75,14 +79,13 @@ biplot(pca, scaling = "symmetric")
 - Have two sets of scores
     - Species scores
     - Site scores
-         \end{enumerate}
 - Sample (species) points plotted close together have similar species compositions (occur together)
 - In PCA, species scores often drawn as arrows --- point in direction of increasing abundance
 - Species arrows with small angles to an axis are highly correlated with that axis
 
 \column{0.5\linewidth}
 
-```{r vare-pca-2, echo=FALSE, fig.width=8, fig.height=8}
+```{r vare-pca-2, echo=FALSE, fig.width=8, fig.height=8, out.width="\\linewidth", crop.plot=TRUE}
 pca <- rda(decostand(varespec, method = "hellinger"), scale = TRUE)
 biplot(pca, scaling = "symmetric")
 ```
@@ -93,7 +96,7 @@ biplot(pca, scaling = "symmetric")
 
 Eigenvalues $\lambda$ are the amount of variance (inertia) explained by each axis
 
-```{r vare-pca-3, fig.width=8, fig.height=6, crop.plot=TRUE}
+```{r vare-pca-3, fig.width=8, fig.height=6, crop.plot=TRUE, out.width="0.6\\linewidth"}
 head(eigenvals(pca), 6L)
 screeplot(pca, bstick = TRUE, type = "l", main = NULL)
 ```
@@ -101,6 +104,16 @@ screeplot(pca, bstick = TRUE, type = "l", main = NULL)
 # Correspondence Analysis
 
 ## Correspondence Analysis
+
+Correspondence analysis (CA) is very similar to PCA --- in fct it is a just a weighted form of PCA
+
+The row and column sums are used as weights and this has the effect of turning the analysis into one of relative composition
+
+The weighting is a trick to get linear-based software to fit non-linear responses
+
+These nonlinear response are assumed to unimodal Gaussian curves, all with equal height and tolerance widths, and equally spaced optima
+
+So, not very realistic, but it is suprisingl robust at times to violation of this assumption
 
 ## Vegetation in lichen pastures --- CA biplots
 
@@ -116,7 +129,7 @@ screeplot(pca, bstick = TRUE, type = "l", main = NULL)
 	  
 \column{0.5\linewidth}
 
-```{r vare-ca-1, echo=FALSE, fig.width=8, fig.height=8, crop.plot=TRUE}
+```{r vare-ca-1, echo=FALSE, fig.width=8, fig.height=8, crop.plot=TRUE, out.width="\\linewidth"}
 ca <- cca(varespec)
 plot(ca)
 ```
@@ -196,7 +209,7 @@ ca1
 	
 \column{0.4\linewidth}
 
-```{r ca_biplot, fig.width=8, fig.height=8, crop.plot=TRUE}
+```{r ca_biplot, fig.width=8, fig.height=8, crop.plot=TRUE, out.width="\\linewidth"}
 plot(ca1, scaling = "symmetric")
 ```
 

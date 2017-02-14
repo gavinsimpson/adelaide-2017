@@ -203,6 +203,16 @@ Analysis}\label{principal-components-analysis}
 
 \begin{figure}[htbp]
 \centering
+\includegraphics{/home/gavin/work/teaching/adelaide/feb-2017/03-wednesday/Sherrin_footy.jpg}
+\caption{© HappyWaldo CC BY-SA}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Principal Components Analysis}
+
+\begin{figure}[htbp]
+\centering
 \includegraphics{pca_example_figure.pdf}
 \caption{}
 \end{figure}
@@ -214,7 +224,7 @@ Analysis}\label{principal-components-analysis}
 Data are cover values of 44 understorey species recorded at 24 locations
 in lichen pastures within dry \emph{Pinus sylvestris} forests
 
-\begin{center}\includegraphics[width=0.7\linewidth]{01-basic-ordination_files/figure-beamer/vare-pca-1-1} \end{center}
+\begin{center}\includegraphics[width=0.8\linewidth]{01-basic-ordination_files/figure-beamer/vare-pca-1-1} \end{center}
 
 \end{frame}
 
@@ -233,7 +243,7 @@ in lichen pastures within dry \emph{Pinus sylvestris} forests
   \item
     Species scores
   \item
-    Site scores \textbackslash{}end\{enumerate\}
+    Site scores
   \end{itemize}
 \item
   Sample (species) points plotted close together have similar species
@@ -248,7 +258,7 @@ in lichen pastures within dry \emph{Pinus sylvestris} forests
 
 \column{0.5\linewidth}
 
-\begin{center}\includegraphics[width=0.7\linewidth]{01-basic-ordination_files/figure-beamer/vare-pca-2-1} \end{center}
+\begin{center}\includegraphics[width=\linewidth]{01-basic-ordination_files/figure-beamer/vare-pca-2-1} \end{center}
 
 \columnsend
 
@@ -276,13 +286,28 @@ by each axis
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.7\linewidth]{01-basic-ordination_files/figure-beamer/vare-pca-3-1} \end{center}
+\begin{center}\includegraphics[width=0.6\linewidth]{01-basic-ordination_files/figure-beamer/vare-pca-3-1} \end{center}
 
 \end{frame}
 
 \section{Correspondence Analysis}\label{correspondence-analysis}
 
 \begin{frame}{Correspondence Analysis}
+
+Correspondence analysis (CA) is very similar to PCA --- in fct it is a
+just a weighted form of PCA
+
+The row and column sums are used as weights and this has the effect of
+turning the analysis into one of relative composition
+
+The weighting is a trick to get linear-based software to fit non-linear
+responses
+
+These nonlinear response are assumed to unimodal Gaussian curves, all
+with equal height and tolerance widths, and equally spaced optima
+
+So, not very realistic, but it is suprisingl robust at times to
+violation of this assumption
 
 \end{frame}
 
@@ -317,7 +342,7 @@ by each axis
 
 \column{0.5\linewidth}
 
-\begin{center}\includegraphics[width=0.7\linewidth]{01-basic-ordination_files/figure-beamer/vare-ca-1-1} \end{center}
+\begin{center}\includegraphics[width=\linewidth]{01-basic-ordination_files/figure-beamer/vare-ca-1-1} \end{center}
 
 \columnsend
 
@@ -478,7 +503,7 @@ Eigenvalues for unconstrained axes:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.7\linewidth]{01-basic-ordination_files/figure-beamer/ca_biplot-1} \end{center}
+\begin{center}\includegraphics[width=\linewidth]{01-basic-ordination_files/figure-beamer/ca_biplot-1} \end{center}
 
 \columnsend
 
