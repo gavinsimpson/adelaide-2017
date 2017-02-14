@@ -11,7 +11,7 @@ output:
     keep_tex: true
     highlight: tango
     slide_level: 2
-    template: ~/work/teaching/adelaide/feb-2017/slide-template-feb-2017.tex
+    template: ~/work/teaching/slides-template-v2.tex
     fig_width: 6
     fig_height: 3.5
     fig_crop: false
@@ -37,6 +37,19 @@ data(varechem)
 # Introduction
 
 ## Introduction
+
+Constrained ordination is the marriage of basic ordination methods and regression
+
+We try to extract pattern from our responses but we extract only that which can be explained by the measured covariates
+
+We can view RDA as being the result of
+
+1. fitting a multiple regression to each species in turn using the set of covariates,
+2. then running PCA on the matrix of fitted values from those regressions
+
+These are regression models so work with them as if they were a linear model
+
+But we have little theory, so all inference is done using \alert{permutation} tests
 
 # Constrained Ordination
 
@@ -116,18 +129,18 @@ eigenvals(cca1)
 ```
 \normalsize
 
-## Your turn
+<!-- ## Your turn -->
 
-- Fit a CCA model to the lichen pasture data. The model should include, N, P, and K only.
-- Save the model in object `mycca1`
-- How much variance is explained by this model?
-- Extract the eigenvalues, how many constrained axes are there?
+<!-- - Fit a CCA model to the lichen pasture data. The model should include, N, P, and K only. -->
+<!-- - Save the model in object `mycca1` -->
+<!-- - How much variance is explained by this model? -->
+<!-- - Extract the eigenvalues, how many constrained axes are there? -->
 
-```{r your-turn-fit-cca}
-library("vegan")
-data(varechem, varespec)
-## ...your code here...
-```
+<!-- ```{r your-turn-fit-cca} -->
+<!-- library("vegan") -->
+<!-- data(varechem, varespec) -->
+<!-- ## ...your code here... -->
+<!-- ``` -->
 
 ## Extracting axis scores
 
@@ -189,9 +202,9 @@ Two modifiers select negative scores depending on whether the model is CCA or RD
 - `hill = TRUE`
 - `correlation = TRUE`
 
-## Your turn
+<!-- ## Your turn -->
 
-- Using the CCA model you fitted, extract the site scores for axes 2 and 3 with Hill's scaling
+<!-- - Using the CCA model you fitted, extract the site scores for axes 2 and 3 with Hill's scaling -->
 
 ## Partial constrained ordinations
 
@@ -220,10 +233,10 @@ plot(cca1)
 ```
 \normalsize
 
-## Your turn
+<!-- ## Your turn -->
 
-- Using `mycca`, draw a triplot of axes 2 and 3 with sites scaling
-- Use the help file `?plot.cca` to help you work out how to do this
+<!-- - Using `mycca`, draw a triplot of axes 2 and 3 with sites scaling -->
+<!-- - Use the help file `?plot.cca` to help you work out how to do this -->
 
 ## Building constrained ordination models
 
@@ -273,6 +286,12 @@ Lots of rules of thumb
  * VIF >= 10 potentially of concern & should be looked at
 
 Computed via `vif.cca()`
+
+\scriptsize
+```{r cca-vif}
+vif.cca(vare.cca)
+```
+\normalsize
 
 ## Stepwise selection in CCA
 
@@ -887,10 +906,10 @@ A firt step in understanding this variation is to test for its exisistence
 
 In this example from Leps & Smilauer (2014) uses crayfish data from Spring River, Arkansas/Missouri, USA, collected by Dr.~Camille Flinders.
 
-567 records of 5 species (each sub-divided into *Large* & *Small* individuals 
+567 records of 5 species (each sub-divided into *Large* & *Small* individuals on basis of carapace length)
 
 ## Hierarchical analysis of crayfish
-```{r load-crayfish}
+```{r load-crayfish-real, echo=FALSE, results="hide"}
 ## load data
 crayfish <- head(read.csv("../00-data-sets/crayfish-spp.csv")[, -1], -1)
 design <- read.csv("../00-data-sets/crayfish-design.csv", skip = 1)[, -1]
@@ -900,10 +919,22 @@ names(crayfish) <- gsub("\\.", "", names(crayfish))
 names(design) <- c("Watershed", "Stream", "Reach", "Run",
                    "Stream.Nested", "ReachNested", "Run.Nested")
 ```
+```{r load-crayfish, eval=FALSE}
+## load data
+crayfish <- head(read.csv("crayfish-spp.csv")[, -1], -1)
+design <- read.csv("crayfish-design.csv", skip = 1)[, -1]
+
+## fixup the names
+names(crayfish) <- gsub("\\.", "", names(crayfish))
+names(design) <- c("Watershed", "Stream", "Reach", "Run",
+                   "Stream.Nested", "ReachNested", "Run.Nested")
+```
 
 ## Hierarchical analysis of crayfish --- Unconstrained
 
-Number of samples have 0 crayfish, which excludes unimodal methods
+A number of samples have 0 crayfish, which excludes unimodal methods --- CA would just delete these rows as they contain no data
+
+Fit unconstrained PCA
 
 \scriptsize
 ```{r crayfish-unconstrained}
@@ -913,13 +944,15 @@ summary(eigenvals(m.pca))
 \normalsize
 
 ## Hierarchical analysis of crayfish --- Unconstrained
-\scriptsize
-```{r crayfish-pca-plot, fig.width = 16, fig.height = 7.5, fig.show = "hold", crop.plot = TRUE}
-layout(matrix(1:2, ncol = 2))
-biplot(m.pca, type = c("text", "points"), scaling = "species")
+\tiny
+```{r crayfish-pca-plot, fig.width = 16, fig.height = 5, fig.show = "hold", crop.plot = TRUE, out.width="\\linewidth"}
 set.seed(23)
-ev.pca <- envfit(m.pca ~ Watershed, data = design, scaling = "species")
-plot(ev.pca, labels = levels(design$Watershed), add = FALSE)
+layout(matrix(1:3, ncol = 3))
+biplot(m.pca, type = c("text", "none"), display = "species", scaling = "species", correlation = TRUE)
+plot(envfit(m.pca ~ Watershed, data = design, scaling = "species", correlation = TRUE), add = FALSE,
+     labels = levels(design$Watershed))
+ev.pca <- envfit(m.pca ~ Stream, data = design, scaling = "species", correlation = TRUE)
+plot(ev.pca, labels = levels(design$Stream), add = FALSE)
 layout(1)
 ```
 \normalsize
@@ -999,8 +1032,19 @@ ctrl <- how(nperm = 499, within = Within(type = "free"),
 ```
 \normalsize
 
-# Other stuff
+## Crayfish Summary
 
+```{r crayfish-summary-tab, results="asis", echo=FALSE}
+df <- data.frame(Component = c("Watershed","Stream","Reach","Run","Residual","Total"),
+                 "Explained %" = c(18.9,12.3,15.8,19.5,33.5,100),
+                 "DF" = c(6,14,42,126,378,566), check.names = FALSE)
+df <- transform(df, "'Mean Square'" = round(`Explained %` / DF, 3),
+                "p value" = c(0.002, 0.008, 0.002, 0.002, NA, NA),
+                check.names = FALSE)
+knitr::kable(df)
+```
+
+# Other stuff
 
 ## Diagnostics for constrained ordinations
 

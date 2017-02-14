@@ -4,7 +4,7 @@
 \setbeamercolor{caption name}{fg=normal text.fg}
 \beamertemplatenavigationsymbolsempty
 \usepackage{lmodern}
-\usepackage{amssymb,amsmath,mathtools}
+\usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
 \usepackage{fixltx2e} % provides \textsubscript
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
@@ -68,6 +68,12 @@
 \newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{{#1}}}
 \newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{{#1}}}}
 \newcommand{\NormalTok}[1]{{#1}}
+\usepackage{longtable,booktabs}
+\usepackage{caption}
+% These lines are needed to make table captions work with longtable:
+\makeatletter
+\def\fnum@table{\tablename~\thetable}
+\makeatother
 
 % Prevent slide breaks in the middle of a paragraph:
 \widowpenalties 1 10000
@@ -118,17 +124,6 @@
 \newcommand{\centreFigEnd}{\end{figure}}
 %%
 
-\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}, fontsize=\tiny}
-% make console-output smaller:
-\makeatletter
-\def\verbatim{\tiny\@verbatim \frenchspacing\@vobeyspaces \@xverbatim}
-\makeatother
-\setlength{\parskip}{0pt}
-\setlength{\OuterFrameSep}{-4pt} % was -4pt
-\makeatletter
-\preto{\@verbatim}{\topsep=-10pt \partopsep=-10pt} % were -10pt
-\makeatother
-
 \title{Constrained Ordination}
 \author{Gavin L. Simpson}
 \date{U Adelaide 2017 • Feb 13--17 2017}
@@ -139,6 +134,29 @@
 \section{Introduction}\label{introduction}
 
 \begin{frame}{Introduction}
+
+Constrained ordination is the marriage of basic ordination methods and
+regression
+
+We try to extract pattern from our responses but we extract only that
+which can be explained by the measured covariates
+
+We can view RDA as being the result of
+
+\begin{itemize}
+\tightlist
+\item
+  fitting a multiple regression to each species in turn using the set of
+  covariates,
+\item
+  then running PCA on the matrix of fitted values from those regressions
+\end{itemize}
+
+These are regression models so work with them as if they were a linear
+model
+
+But we have little theory, so all inference is done using
+\alert{permutation} tests
 
 \end{frame}
 
@@ -333,31 +351,6 @@ object
 
 \end{frame}
 
-\begin{frame}[fragile]{Your turn}
-
-\begin{itemize}
-\tightlist
-\item
-  Fit a CCA model to the lichen pasture data. The model should include,
-  N, P, and K only.
-\item
-  Save the model in object \texttt{mycca1}
-\item
-  How much variance is explained by this model?
-\item
-  Extract the eigenvalues, how many constrained axes are there?
-\end{itemize}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{library}\NormalTok{(}\StringTok{"vegan"}\NormalTok{)}
-\KeywordTok{data}\NormalTok{(varechem, varespec)}
-\NormalTok{## ...your code here...}
-\end{Highlighting}
-\end{Shaded}
-
-\end{frame}
-
 \begin{frame}[fragile]{Extracting axis scores}
 
 To extract a range of scores from a fitted ordination use
@@ -504,17 +497,6 @@ CCA or RDA:
 
 \end{frame}
 
-\begin{frame}{Your turn}
-
-\begin{itemize}
-\tightlist
-\item
-  Using the CCA model you fitted, extract the site scores for axes 2 and
-  3 with Hill's scaling
-\end{itemize}
-
-\end{frame}
-
 \begin{frame}[fragile]{Partial constrained ordinations}
 
 \emph{Partial} constrained ordinations remove the effect of one or more
@@ -556,20 +538,6 @@ recipe for a mess\ldots{} but we can do it
 \begin{center}\includegraphics[width=0.5\linewidth]{02-constrained-ordination_files/figure-beamer/triplot-1-1} \end{center}
 
 \normalsize
-
-\end{frame}
-
-\begin{frame}[fragile]{Your turn}
-
-\begin{itemize}
-\tightlist
-\item
-  Using \texttt{mycca}, draw a triplot of axes 2 and 3 with sites
-  scaling
-\item
-  Use the help file \texttt{?plot.cca} to help you work out how to do
-  this
-\end{itemize}
 
 \end{frame}
 
@@ -674,6 +642,21 @@ Lots of rules of thumb
 \end{itemize}
 
 Computed via \texttt{vif.cca()}
+
+\scriptsize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{vif.cca}\NormalTok{(vare.cca)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+        Al          P          K   Baresoil        P:K P:Baresoil 
+  1.335298  17.989518  12.891913  12.927791  41.037782  13.426405 
+\end{verbatim}
+
+\normalsize
 
 \end{frame}
 
@@ -2076,7 +2059,7 @@ Spring River, Arkansas/Missouri, USA, collected by
 Dr.\textasciitilde{}Camille Flinders.
 
 567 records of 5 species (each sub-divided into \emph{Large} \&
-\emph{Small} individuals
+\emph{Small} individuals on basis of carapace length)
 
 \end{frame}
 
@@ -2085,8 +2068,8 @@ Dr.\textasciitilde{}Camille Flinders.
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{## load data}
-\NormalTok{crayfish <-}\StringTok{ }\KeywordTok{head}\NormalTok{(}\KeywordTok{read.csv}\NormalTok{(}\StringTok{"../00-data-sets/crayfish-spp.csv"}\NormalTok{)[, -}\DecValTok{1}\NormalTok{], -}\DecValTok{1}\NormalTok{)}
-\NormalTok{design <-}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{"../00-data-sets/crayfish-design.csv"}\NormalTok{, }\DataTypeTok{skip =} \DecValTok{1}\NormalTok{)[, -}\DecValTok{1}\NormalTok{]}
+\NormalTok{crayfish <-}\StringTok{ }\KeywordTok{head}\NormalTok{(}\KeywordTok{read.csv}\NormalTok{(}\StringTok{"crayfish-spp.csv"}\NormalTok{)[, -}\DecValTok{1}\NormalTok{], -}\DecValTok{1}\NormalTok{)}
+\NormalTok{design <-}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{"crayfish-design.csv"}\NormalTok{, }\DataTypeTok{skip =} \DecValTok{1}\NormalTok{)[, -}\DecValTok{1}\NormalTok{]}
 
 \NormalTok{## fixup the names}
 \KeywordTok{names}\NormalTok{(crayfish) <-}\StringTok{ }\KeywordTok{gsub}\NormalTok{(}\StringTok{"}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{."}\NormalTok{, }\StringTok{""}\NormalTok{, }\KeywordTok{names}\NormalTok{(crayfish))}
@@ -2100,7 +2083,10 @@ Dr.\textasciitilde{}Camille Flinders.
 \begin{frame}[fragile]{Hierarchical analysis of crayfish ---
 Unconstrained}
 
-Number of samples have 0 crayfish, which excludes unimodal methods
+A number of samples have 0 crayfish, which excludes unimodal methods ---
+CA would just delete these rows as they contain no data
+
+Fit unconstrained PCA
 
 \scriptsize
 
@@ -2130,20 +2116,22 @@ Cumulative Proportion 0.97754 0.99948 1.000000
 \begin{frame}[fragile]{Hierarchical analysis of crayfish ---
 Unconstrained}
 
-\scriptsize
+\tiny
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\KeywordTok{layout}\NormalTok{(}\KeywordTok{matrix}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{2}\NormalTok{, }\DataTypeTok{ncol =} \DecValTok{2}\NormalTok{))}
-\KeywordTok{biplot}\NormalTok{(m.pca, }\DataTypeTok{type =} \KeywordTok{c}\NormalTok{(}\StringTok{"text"}\NormalTok{, }\StringTok{"points"}\NormalTok{), }\DataTypeTok{scaling =} \StringTok{"species"}\NormalTok{)}
 \KeywordTok{set.seed}\NormalTok{(}\DecValTok{23}\NormalTok{)}
-\NormalTok{ev.pca <-}\StringTok{ }\KeywordTok{envfit}\NormalTok{(m.pca ~}\StringTok{ }\NormalTok{Watershed, }\DataTypeTok{data =} \NormalTok{design, }\DataTypeTok{scaling =} \StringTok{"species"}\NormalTok{)}
-\KeywordTok{plot}\NormalTok{(ev.pca, }\DataTypeTok{labels =} \KeywordTok{levels}\NormalTok{(design$Watershed), }\DataTypeTok{add =} \OtherTok{FALSE}\NormalTok{)}
+\KeywordTok{layout}\NormalTok{(}\KeywordTok{matrix}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{3}\NormalTok{, }\DataTypeTok{ncol =} \DecValTok{3}\NormalTok{))}
+\KeywordTok{biplot}\NormalTok{(m.pca, }\DataTypeTok{type =} \KeywordTok{c}\NormalTok{(}\StringTok{"text"}\NormalTok{, }\StringTok{"none"}\NormalTok{), }\DataTypeTok{display =} \StringTok{"species"}\NormalTok{, }\DataTypeTok{scaling =} \StringTok{"species"}\NormalTok{, }\DataTypeTok{correlation =} \OtherTok{TRUE}\NormalTok{)}
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{envfit}\NormalTok{(m.pca ~}\StringTok{ }\NormalTok{Watershed, }\DataTypeTok{data =} \NormalTok{design, }\DataTypeTok{scaling =} \StringTok{"species"}\NormalTok{, }\DataTypeTok{correlation =} \OtherTok{TRUE}\NormalTok{), }\DataTypeTok{add =} \OtherTok{FALSE}\NormalTok{,}
+     \DataTypeTok{labels =} \KeywordTok{levels}\NormalTok{(design$Watershed))}
+\NormalTok{ev.pca <-}\StringTok{ }\KeywordTok{envfit}\NormalTok{(m.pca ~}\StringTok{ }\NormalTok{Stream, }\DataTypeTok{data =} \NormalTok{design, }\DataTypeTok{scaling =} \StringTok{"species"}\NormalTok{, }\DataTypeTok{correlation =} \OtherTok{TRUE}\NormalTok{)}
+\KeywordTok{plot}\NormalTok{(ev.pca, }\DataTypeTok{labels =} \KeywordTok{levels}\NormalTok{(design$Stream), }\DataTypeTok{add =} \OtherTok{FALSE}\NormalTok{)}
 \KeywordTok{layout}\NormalTok{(}\DecValTok{1}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.7\linewidth]{02-constrained-ordination_files/figure-beamer/crayfish-pca-plot-1} \end{center}
+\begin{center}\includegraphics[width=\linewidth]{02-constrained-ordination_files/figure-beamer/crayfish-pca-plot-1} \end{center}
 
 \normalsize
 
@@ -2451,6 +2439,24 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 \end{verbatim}
 
 \normalsize
+
+\end{frame}
+
+\begin{frame}{Crayfish Summary}
+
+\begin{longtable}[]{@{}lrrrr@{}}
+\toprule
+Component & Explained \% & DF & `Mean Square' & p value\tabularnewline
+\midrule
+\endhead
+Watershed & 18.9 & 6 & 3.150 & 0.002\tabularnewline
+Stream & 12.3 & 14 & 0.879 & 0.008\tabularnewline
+Reach & 15.8 & 42 & 0.376 & 0.002\tabularnewline
+Run & 19.5 & 126 & 0.155 & 0.002\tabularnewline
+Residual & 33.5 & 378 & 0.089 & NA\tabularnewline
+Total & 100.0 & 566 & 0.177 & NA\tabularnewline
+\bottomrule
+\end{longtable}
 
 \end{frame}
 
