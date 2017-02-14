@@ -1,0 +1,445 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{xspace,graphicx}
+\usepackage[utf8x]{inputenc}
+\newcommand{\rda}{\texttt{rda()}\xspace}
+\newcommand{\cca}{\texttt{cca()}\xspace}
+\renewcommand{\abstractname}{Summary}
+\newcommand{\R}{\textsf{R}\xspace}
+\newcommand{\vegan}{\texttt{vegan}\xspace}
+
+\usepackage[left=2cm,top=2cm,bottom=2cm,right=2cm]{geometry}
+\renewcommand{\abstractname}{Summary}
+
+\setkeys{Gin}{width=0.8*\textwidth}
+
+%opening
+\title{Constrained Ordination}
+\author{Gavin Simpson}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This practical will use the PONDS dataset to demonstrate direct gradient analysis (CCA) of species and environmental data. The file pondsenv.csv contains the species data (48 taxa) and pondsenv.csv contains the transformed environmental variables (15 variables) for 30 sites. You will use \R and the \vegan package to analyse these data using a variety of direct ordination graphical display techniques.
+\end{abstract}
+
+<<echo=false,results=hide>>=
+options(width = 65, digits = 4)
+myDots <- "...."
+library(mgcv)
+@
+
+\section{Canonical Correspondence Analysis}
+In this part of the practical you will use the \cca function from package \vegan to perform a canonical correspondence analysis (CCA) of the diatom species data and the enviromental data. Begin by loading \vegan and reading in the data sets:
+
+<<echo=true,fig=false>>=
+library(vegan)
+diat <- read.csv("ponddiat.csv")
+env <- read.csv("pondsenv.csv")
+@
+
+The ponds are numbered numerically in the form X???, the species are encoded using DIATCODE and environmental variable codes should be self explanatory:
+
+<<echo=true>>=
+rownames(diat)
+names(diat)
+names(env)
+@
+
+\vegan has a nice formula interface, so it works in a similar way to the notation you used in the two regression practical classes. To fit a CCA model to the diatom and environmental data use the \cca function:
+
+<<echo=true>>=
+ponds.cca <- cca(diat ~ ., data = env)
+ponds.cca
+@
+
+The formula means the diatom data matrix \texttt{diat} is modelled by everything in the environmental data matrix \texttt{env}. We use the data argument to inform R of where to look for the explanatory variables. The ``\texttt{.}'' is an \R shortcut that saves you from having to type out the full formula.
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item What are the values of $\lambda_1$ and $\lambda_1$, the eigenvalues for constrained axes one and two?
+\item What is the total variance (inertia) in the diatom data?
+\item What proportion of the total variance is explained by the environmental variables?
+\item What proportion of the variance remains un-explained?
+\end{enumerate}
+
+The \texttt{summary()} method provides further, detailed results of the CCA:
+
+<<echo=true,eval=FALSE>>=
+summary(ponds.cca)
+@
+<<echo=false,eval=true>>=
+out <- capture.output(summary(ponds.cca))
+cat(out[1:15], myDots, out[25:36], myDots, out[83:89], myDots, out[118:124], myDots, out[153:159], sep = "\n")
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Why are there two sets of site scores?
+\item Look at the biplot scores in the summary output. Suggest which variables are important on CCA axes 1 and on CCA axis 2?
+\end{enumerate}
+
+The \texttt{plot()} method is used to produce a triplot/biplot of the ordination results. Plot a triplot of the CCA of the \texttt{ponds} data (Figure \ref{cca_triplot}).
+
+<<echo=true,eval=false,fig=false>>=
+plot(ponds.cca)
+@
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,fig=true>>=
+plot(ponds.cca)
+@
+\caption{\label{cca_triplot}Triplot of the CCA of the Ponds diatom and hydrochemistry data.}
+\end{center}
+\end{figure}
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Using the triplot, the biplot scores of the enviromental variables and the ordination axes, interpret the axes in terms of environmental gradients.
+\item Indicate which species are characteristic of particular types of water.
+\end{enumerate}
+
+\subsection{Comparison with un-constrained methods}
+Perform a CA and a DCA of the ponds diatom data:
+
+<<echo=true,eval=true>>=
+ponds.ca <- cca(diat)
+ponds.ca
+ponds.dca <- decorana(diat)
+ponds.dca
+@
+
+Refer to the handout on indirect ordination for hints and answer the following question:
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item How does the result of the CCA compare to the results of the CA and DCA?
+\item Plot the CA/DCA biplots are compare the configuration of sites in these biplots to the one shown in the CCA triplot. Do they suggest that our measured environmental variables explain the main floristic gradients in the diatom data?
+\end{enumerate}
+
+So far, you have used the default scaling (\texttt{scaling = 2}) for the plots and summaries. Redraw the triplot using \texttt{scaling = 1}, to draw a triplot where the site scores are weighted averages of the species scores:
+
+<<echo=true,eval=false,fig=false>>=
+plot(ponds.cca, scaling = 1)
+@
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,fig=true>>=
+plot(ponds.cca, scaling = 1)
+@
+\caption{\label{cca_triplot2}Triplot of the CCA of the Ponds diatom and hydrochemistry data using \texttt{scaling = 1}.}
+\end{center}
+\end{figure}
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item What effect does the choice of scaling have on the ordination plots?
+\end{enumerate}
+
+\subsection{Interpretting the CCA results}
+There is a lot more that can be done to interpret the results of the CCA and explore relationships between the diatom species and the environmental variables, as well as determining model performance for the CCA itelf.
+
+\subsubsection{Outliers?}
+One useful diagnostic for the configuration is to identify outlier or ``odd'' sites or species. Plotting the Hills's $N_2$ values for both species and samples can help visualise outliers. We can produce biplots using $N_2$ values for species and sites easily in \R using \texttt{renyi()} in \vegan. First we calculate the $N_2$ values for sites and species:
+
+<<echo=true,eval=true>>=
+diat.n2 <- renyi(t(diat), scales = 2, hill = TRUE)
+ponds.n2 <- renyi(diat, scales = 2, hill = TRUE)
+@
+Then we use these values to scale the plotting symbol used to display the sites of the species and use \texttt{identify()} to label the outlier spescies/sites (remember to click on some species [red crosses] to label them and right click on the graph to finish). Firstly for the species:
+
+<<echo=true,eval=false,fig=false>>=
+sppN2 <- plot(ponds.cca, display = "species", type = "n")
+points(ponds.cca, display = "species", pch = "+", col = "red", cex = 0.5)
+symbols(scores(ponds.cca)$species, circles = diat.n2,
+        add = TRUE, inches = 0.5)
+text(ponds.cca, display = "bp", arrow.mul = 2,
+     col = "blue", cex = 0.9)
+identify(sppN2, what = "species", ps = 10)
+@
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,fig=true>>=
+sppN2 <- plot(ponds.cca, display = "species", type = "n")
+points(ponds.cca, display = "species", pch = "+", col = "red", cex = 0.5)
+symbols(scores(ponds.cca)$species, circles = diat.n2,
+        add = TRUE, inches = 0.5)
+text(ponds.cca, display = "bp", arrow.mul = 2,
+     col = "blue", cex = 0.9)
+@
+\caption{\label{species_n2}Biplot showing the species:environment relationships. Species symbols are scaled by Hill's $N_2$.}
+\end{center}
+\end{figure}
+
+...~and for the sites:
+
+<<echo=true,eval=false,fig=false>>=
+siteN2 <- plot(ponds.cca, display = "sites", type = "n")
+points(ponds.cca, display = "sites", pch = "+", col = "red", cex = 0.5)
+symbols(scores(ponds.cca)$sites, circles = ponds.n2,
+        add = TRUE, inches = 0.5)
+text(ponds.cca, display = "bp", arrow.mul = 2,
+     col = "blue", cex = 0.9)
+identify(siteN2, what = "sites", ps = 10)
+@
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,fig=true>>=
+siteN2 <- plot(ponds.cca, display = "sites", type = "n")
+points(ponds.cca, display = "sites", pch = "+", col = "red", cex = 0.5)
+symbols(scores(ponds.cca)$sites, circles = ponds.n2,
+        add = TRUE, inches = 0.5)
+text(ponds.cca, display = "bp", arrow.mul = 2,
+     col = "blue", cex = 0.9)
+@
+\caption{\label{sites_n2}Biplot showing the site:environment relationships. Sites symbols are scaled by Hill's $N_2$.}
+\end{center}
+\end{figure}
+
+To help interpret these plots, we add the species/site labels to the species/site Hill's $N_2$ values and print them to the screen.
+
+<<eval=true,echo=true>>=
+names(diat.n2) <- colnames(diat)
+sort(diat.n2, decreasing = TRUE)
+names(ponds.n2) <- rownames(diat)
+sort(ponds.n2, decreasing = TRUE)
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Using the Hill's $N_2$ plots and the actual $N_2$ values for the sites and species, which species are abundant and which are rare in the Ponds diatom data set?
+\item Which of the sites have low species diversity and which high diversity?
+\end{enumerate}
+
+\subsubsection{How significant are the constraints?}
+The CCA model we have built is a weighted, multivariate multiple regression and just as in regression, we want to achieve as parsimonious a model as possible, one that adequately describes the species environmental relationships without being overly complex. Whilst it is common for users to throw as many constraints as possible at a CCA this has the effect of \emph{reducing} the contraints on the ordination (it becomes more like the CA the more constraints you use) and of building an overly complex model that is over fitted to that particular data set. In this section you will look at some of the model building/selection tools available within \R and \vegan.
+
+Firstly, we should look for redundant constraints---environmental variables that are highly corellated with each other are prime candidates for exclusion from the model. Produce a corellation matrix of the environmental data set and calculate the variance inflation factors for each variable.
+
+<<echo=true,eval=false>>=
+cor(env) # output not shown in handout
+@
+<<echo=true,eval=true>>=
+vif.cca(ponds.cca)
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Suggest which variables might be redundant and therefore dropped from the CCA model?
+\end{enumerate}
+
+We should also check the significance of the full CCA model we have fit. This is done using the \texttt{anova()} function:
+<<echo=true,eval=false>>=
+anova(ponds.cca)
+@
+
+<<echo=false,eval=true>>=
+set.seed(123456)
+anova(ponds.cca)
+@
+
+Note that this uses random permutations so your P-value may vary.
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Is the full model significant at the 0.01 level?
+\end{enumerate}
+
+Canoco also reports the species:environment correlation---the correlation between the sites scores that are weighted averages of the species scores and the site score that are linear combinations of the environmental data. Function \texttt{spenvcor()} calculates the correlation between the two sets of site scores.
+
+<<>>=
+spenvcor(ponds.cca)
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Are there high correlations between the two sets of site scores?
+\item What does this tell you about the relationships between the species and the environmental data?
+\end{enumerate}
+
+\subsubsection{Fowards selection and backwards elimination}
+Whilst automated model building methods are not the panacea that many people think they are, they can be a useful aid when model building with lots of environmental variables.
+
+The model selection tools available in \vegan are different to those available in CANOCO, and are based on the concept of AIC, a fairly new concept for CCA as CCA is not based on concepts of deviance and log likelihoods (from which AIC was derived). Instead features of the CCA results are converted into a deviance by calculating the Chi-square of the residual data matrix after fitting constraints (in RDA, deviance is taken to be the residual sum of squares instead). From here an AIC statistic can be calculated, the details of which are given in the reference quoted in the help page for \texttt{deviance.cca()} (type \texttt{?deviance.cca} at the \R prompt to read this page if you so wish).
+
+Before we begin, note that the author of \vegan, Jari Oksanen, is not convinced about all aspects of this approach, and advocates checking the results manually---which is good advice seeing as you should not be relying on automated model selection tools anyway!
+
+To begin, define a null model to which we will sequentially add variables in order of added importance:
+
+<<>>=
+mod0 <- cca(diat ~ 1, data = env)
+mod0
+@
+
+As you can see, this is an unconstrained model or a CA. Function \texttt{step.cca()} is used to \emph{step} forwards or backwards through a series of nested models adding or dropping an explanatory variable at each iteration\footnote{\texttt{step()} is a generic function and \texttt{step} methods can be written for different modelling functions. This means you only need to use the generic \texttt{step()} and \R take care of finding and using the correct method for the object you are running \texttt{step()} on. Another example of a generic is \texttt{anova()}, which you used earlier---what you actually used was \texttt{anova.cca()}}. To use \texttt{step()} we need to define an upper and lower scope for the stepping to place over. We will use \texttt{mod0} as the lower scope and \texttt{ponds.cca} (the full model) as the upper scope when performing forward selection---this is reversed when performing backwards elimination.
+
+<<echo=true,eval=false>>=
+mod <- step(ponds.cca, scope = list(lower = formula(mod0),
+                         upper = formula(ponds.cca)))
+@
+<<eval=true,echo=false>>=
+mod <- step(ponds.cca, scope = list(lower = formula(mod0),
+                         upper = formula(ponds.cca)), trace = FALSE)
+@
+
+You should have seen lots of output false across the screen. At each stage, the effect of adding/dropping a variable is evaluated in terms of AIC and the variables ordered by AIC. Low AIC values are preferred, and if a lower AIC can be achieved by adding or removing a variable at a stage then this variable is added/deleted and the procedure repeats, this time using the new formula as the starting point. In the above example, we used both forwards and backwards elmination at each step.
+
+Print out the record of the steps:
+
+<<>>=
+mod$anova
+@
+
+We see that we started with the full model and calcium was dropped from the full model. Next Conductivity was dropped and so on, with TP being the last variable dropped. At no stage was a variable added back into the model. To view the final model simply type:
+
+<<>>=
+mod
+@
+
+The final model contains two variables---secchi disk depth and maximum pond depth. Test this model and see how significant the effects of the constraints are:
+
+<<echo=true,eval=false>>=
+anova(mod)
+@
+
+<<echo=false,eval=true>>=
+set.seed(123456)
+anova(mod)
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Is this model better than full model?
+\item How much of the total inertia is explained by the two constraints?
+\end{enumerate}
+
+Produce a triplot of this model:
+
+<<echo=true,eval=false,fig=false>>=
+plot(mod)
+@
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,fig=true>>=
+plot(mod)
+@
+\caption{\label{final_triplot}Triplot of the CCA of the Ponds diatom and hydrochemistry data after forwards selection and backwards elimination.}
+\end{center}
+\end{figure}
+
+The triplot suggests that there is a strong outlier site in terms of maximum depth (Pond X113). We might wish to investigate how the CCA model might change if we deleted this observation. We delete this observation and build new null and full CCA models
+
+<<>>=
+no.need <- which(rownames(diat) == "X113")
+diat2 <- diat[-no.need, ]
+env2 <- env[-no.need, ]
+mod0 <- cca(diat2 ~ 1, data = env2)
+cca.delete <- cca(diat2 ~ ., data = env2)
+@
+
+We can now retry the automatic stepping model selection and plot the resulting triplot:
+
+<<results=hide>>=
+mod.delete <- step(cca.delete, scope = list(lower = formula(mod0),
+                   upper = formula(cca.delete)))
+plot(mod.delete)
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item How does this model compare to the model with MaxDepth and Secchi only?
+\end{enumerate}
+
+A further thing we should check is whether we get different models whether we do forward selection, backward elimination or both. The default for \texttt{step()} is to evaluate both forward and backward steps. If we wish to perform forward selection only, we need to tell \R to start from the null model:
+
+<<results=hide>>=
+mod.fwd<- step(mod0, scope = list(lower = formula(mod0),
+                   upper = formula(cca.delete)))
+plot(mod.fwd)
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Which variables has forward selection chosen?
+\end{enumerate}
+
+This highlights one of the problems with automatic model building tools. As a description of the data, \texttt{mod.delete} seems a nicer plot, but it retains a number environmental variables that are very correlated. Forward selection produces a model with a single environmental variables. So which to use? And therein lies the problem. There is no substitution for rolling up ones sleeves and getting involved in building and checking lots of candidate models.
+
+As a starter, we could look at the significance of the terms in \texttt{mod.delete}:
+
+<<test1>>=
+anova(mod.delete, by = "terms")
+@
+
+Here, the significance of terms are assessed sequentially from first to last. A number of the environmental variables are not significant under this test. As a strategy for producing a parsimonius model, we might proceed by removing the variable that contributes the least here, Na.
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item As an exercise if you have time, try dropping out terms and rerun \texttt{anova} to try to produce a parsimonious model.
+\end{enumerate}
+
+\subsection{Partial CCA models}
+There are occaisions where we might wish to fit a model to our species data after controlling for the effects of one or more environmental variables. These models are known as partial constrained ordinations---the effect of the one or more environmental variables are partialled out, and a CCA/RDA model is applied to explain the residual variation.
+
+In \vegan partial models are fitted using the \texttt{Condition()} function within the model formula describing the model you wish to fit. The \texttt{Condition()} function is used to \emph{condition} the model on the set of covariables and fit a model to the residuals of the conditioned model. Multiple variables can be included within \texttt{Condition()}, separated by a ``+''. Partial models can also be used to evaluate the significance of adding a new variable to a model already containing one or more variables---partial out the existing variables and fit a model with the new variable of interest, using \texttt{anova()} to assess the effect of adding this new variable.
+
+Say we were interested in investigating the effects of the hydrochemical variables on diatom distributions in the Ponds dataset, after controlling for the effects of MaxDepth and Secchi, we would fit this model in \R like so:
+
+<<>>=
+partial.mod <- cca(diat ~ . + Condition(MaxDepth + Secchi), data = env)
+partial.mod
+anova(partial.mod)
+@
+
+\subsection*{Q and A}
+\begin{enumerate}
+\item Do the remaining environmental variables explain significant amounts of the variance in the species data after controlling for MaxDepth and Secchi?
+\item How much of the variance is explained by the Conditional variables?
+\item How much of the variance is explained by the constraints?
+\item How much is left unexplained?
+\end{enumerate}
+
+Finally, plot a triplot for this model:
+
+<<echo=true,eval=false,label=fail>>=
+plot(partial.mod)
+@
+
+\begin{figure}[t]
+\begin{center}
+<<echo=false,fig=true>>=
+plot(partial.mod)
+@
+\caption{\label{partial_triplot}Triplot of the partial CCA of the Ponds diatom and hydrochemistry data after controlling for the effects of MaxDepth and Secchi.}
+\end{center}
+\end{figure}
+
+\section{Canonical Analysis of Principal Coordinates}
+\rda tries to preserves the Euclidean distances between sites in low dimensional ordination space. Euclidean distances may not always be appropriate for the type of data or analysis you may wish to fit. Canonical Analysis of Principal Coordinates (CAP) allows you to use any dissimilarity matrix in the place of the Euclidean distance. One potential use of this method is to fit models to species data where you have rare or strange sites which may upset CCA. Another potential use might be to analyse many environmental data in relation to physical constraints with permutation tests being used to test significance of the contraints---such an analysis could potentially be performed using multiple regression, but if the data do not met the assumptions of least squares, for example, CAP can be used to analyse these data.
+
+Here we fit a CAP model to the same Ponds diatom data set using the hydrochemical data as constraints, but use Bray-Curtis dissimilarities instead of the Euclidean distances of RDA.
+
+<<>>=
+diat.cap <- capscale(diat ~ ., data = env, distance = "bray",
+                     add = TRUE)
+diat.cap
+anova(diat.cap)
+plot(diat.cap)
+@
+
+\begin{figure}[t]
+\begin{center}
+<<fig=true,echo=false>>=
+plot(diat.cap)
+@
+\caption{\label{cap_triplot}Canonical Analysis of Principal Coordinates of the Ponds diatom and hydrochemistry data.}
+\end{center}
+\end{figure}
+
+\end{document}
