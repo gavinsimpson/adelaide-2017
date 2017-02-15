@@ -1,0 +1,1333 @@
+\documentclass{beamer}
+
+\usepackage{xspace}
+\usepackage[utf8]{inputenc}
+
+\newcommand{\R}{\textsf{R}\xspace}
+
+\usepackage{graphicx}
+
+\usetheme{Boadilla}
+%\usetheme{CambridgeUS}
+%\usecolortheme{crane}
+\usefonttheme[onlymath]{serif}
+
+\title[Time Series]{Time Series Analysis}
+\author[Gavin Simpson]{Gavin Simpson}
+\institute[IECS, URegina]{Institute of Environmental Change and Society \\ University of Regina}
+\date{Adelaide, February 2017}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\AtBeginSection[]{
+  \begin{frame}<beamer>
+  \frametitle{Outline}
+  \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\section{Introduction}
+\begin{frame}
+\frametitle{Introduction}
+\small
+\begin{itemize}
+    \item A Time Series is a collection of observations made sequentially through time
+    \item A \alert{continuous} time series is one where observations are made continuously through time
+    \begin{itemize}
+        \item \emph{Continuous} refers to the measurement of observations not the type of variable that is observed
+    \end{itemize}
+    \item A \alert{discrete} time series is one where the observations are taken at specific time points
+    \begin{itemize}
+        \item Sampling points are generally equally spaced in time
+    \end{itemize}
+    \item \textbf{deterministic} vs.~\textbf{stochastic}
+\end{itemize}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=6.75cm]{figs/recife_time_plot}
+\end{figure}
+\normalsize
+\end{frame}
+
+\begin{frame}
+\frametitle{Objectives of time series analysis}
+\begin{itemize}
+    \item Description
+    \begin{itemize}
+        \item Time plots of observations; a simple way to describe temporal patterns in a time series
+        \item regular \textbf{seasonal effects} or \textbf{cyclicity}, presence of a \textbf{trends}, \textbf{outliers}, \textbf{sudden changes} or \textbf{breaks}
+    \end{itemize}
+    \item Explanation
+    \begin{itemize}
+        \item Observations on one variable in time may be used to explain the variation in another series
+        \item May help understand the \textbf{mechanisms} that generated a given time series
+    \end{itemize}
+    \item Prediction
+    \begin{itemize}
+        \item Given an observed time series one may want to predict future values of the series --- also called \textbf{forecasting}
+    \end{itemize}
+    \item Control
+    \begin{itemize}
+        \item Time series often collected to improve \textit{control} over a physical process
+        \item Monitoring to alert when conditions exceed an \textit{a priori} determined threshold
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Descriptive Techniques --- types of variations}
+\small
+\begin{itemize}
+    \item Traditional time series methods are often concerned with \alert{decomposing} variation in a time series in components representing \textbf{trend}, \textbf{seasonal} or other \textbf{cyclic} variation. Remaining variation is attributed to \textbf{irregular} fluctuations
+    \item \textbf{Seasonal variation}
+    \begin{itemize}
+        \item Variation that is \textbf{annual} in period
+        \item Easily estimated if of interest, or removed --- \alert{deseasonalised}
+    \end{itemize}
+    \item \textbf{Cyclic variation}
+    \begin{itemize}
+        \item Variation that is \textbf{fixed} in period --- diurnal temperature variation
+        \item Oscillations without a fixed period but are predictable to some extent
+    \end{itemize}
+    \item \textbf{Trend}
+    \begin{itemize}
+        \item \textbf{Long term change in the mean level}
+        \item Trend is a function of the length of the record
+    \end{itemize}
+    \item Other \textbf{irregular} fluctuations
+    \begin{itemize}
+        \item Variation remaining after removal of trend and cyclic variations
+        \item May or may not be \textbf{random}
+    \end{itemize}
+\end{itemize}
+\normalsize
+\end{frame}
+
+\begin{frame}
+\frametitle{Types of variation}
+\begin{figure}
+    \centering
+    \includegraphics[width=11cm]{figs/various_time_plots}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Transformations 1}
+    \begin{itemize}
+        \item Transform time series for similar reasons as for any other type of data
+        \begin{itemize}
+            \item to stabilise the variance
+            \begin{itemize}
+                \item If trend present and variance of series increases with mean; $\log$ transform
+                \item If no trend but variance increases with mean then a transformation is of little use
+            \end{itemize}
+            \item to make seasonal component additive
+            \begin{itemize}
+                \item If seasonal component increases with the mean in presence of a trend, said to be \textbf{multiplicative}
+                \item Transform (e.g.~$\log$) to make the seasonal component constant from year to year; \textbf{additive}
+                \item Transformation will only stabilise the variance if the error term is also multiplicative
+            \end{itemize}
+            \item to make the data normally distributed
+            \begin{itemize}
+                \item Model building usually assumes data are normally distributed
+                \item `spikes' in the time plot will show up as skew in the distribution --- can be difficult to remove
+            \end{itemize}
+        \end{itemize}
+        \item Inherently difficult, however\ldots
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Transformations 2}
+    \begin{itemize}
+        \item Seasonal components
+        \begin{itemize}
+            \item Additive: $X_t = m_t + S_t + \varepsilon_t$
+            \item Multiplicative: $X_t = m_t S_t + \varepsilon_t$
+            \item Multiplicative: $X_t = m_t S_t \varepsilon_t$
+            \item Only the latter will be improved by a transformation
+        \end{itemize}
+        \item A transformation that makes the seasonal component additive may fail to stabilise the variance
+        \item As such we may not be able to achieve all the aims on previous slide
+        \item A model constructed on transformed data less useful than one fitted to raw data
+        \begin{itemize}
+            \item May be more difficult to interpret to models fitted to transformed data
+            \item Forecasts need to be back transformed
+        \end{itemize}
+        \item Avoid transformation where possible, though use them if they make physical sense (e.g.~$\log$ or square root for abundances or percentages)
+    \end{itemize}
+\end{frame}
+
+%% \begin{frame}
+%% \frametitle{Filtering}
+%% \begin{itemize}
+%%     \item A \textbf{linear filter} is used to convert a times series $\{x_t\}$ into another $\{y_t\}$ via a linear operation
+%%     $$y_t = \sum\limits_{r = -q}^{+s} a_r x_{t+r}$$
+%%     \item $\{a_r\}$ are a set of weights
+%%     \item To smooth out local fluctuations and estimate local mean, choose $\{a_r\}$ so $\sum a_r = 1$; \textbf{moving average}
+%%     \item Simple moving average; $a_r = 1 / (2q + 1)$ for $r = -q, \ldots, +q$ so that
+%%     $$y_t = \frac{1}{2q+1} \sum\limits_{r = -q}^{+q} x_{t+r}$$
+%%     \item Moving average over monthly data has 13 weights, and is symmetric $\{1/24, 1/12, \ldots, 1/12, 1/24\}$
+%%     \item Apply other functions; for example moving SD to measure changes in variance of $\{x_t\}$
+%% \end{itemize}
+%% \end{frame}
+
+\begin{frame}
+\frametitle{Differencing}
+\begin{columns}
+    \column{6cm}
+    \begin{itemize}
+        \item \textbf{Differencing} is a special type of filtering useful for removing trends and seasonality to produce a stationary series
+        \item First order differencing; new series formed by subtracting $x_{t-1}$ from $x_t$
+        $$\nabla x_t = x_t - x_{t-1}$$
+        \item \textbf{Seasonal differencing}; e.g.~for monthly data
+        $$\nabla_{12} x_t = x_t - x_{t-12}$$
+        \item Raw $\mathsf{CO_2}$ data (upper); $\nabla_1 \mathsf{CO_2}$ (middle); $\nabla_1\{\nabla_{12} \mathsf{CO_2}\}$ (lower)
+    \end{itemize}
+    \column{6cm}
+    \includegraphics[width=6cm]{figs/differencing_plots}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Decomposing time series --- classical approach}
+\begin{columns}
+    \column{7cm}
+    \begin{itemize}
+        \item Decompose series into \textbf{trend}, \textbf{seasonal}, and \textbf{random} components
+        \item $x_t = \mathrm{Trend}_t + \mathrm{Seasonal}_t + \mathrm{remainder}_t$
+        \item Moving average filter used to identify the trend
+        \item Compute seasonal component as the average over the detrended series of each period (e.g.~month or quarter)
+        \item Seasonal component is formed from the period averages repeated to match the length of the original series
+        \item Random component is the remainder once the trend and the seasonal components have been subtracted from the original series
+    \end{itemize}
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/decompose_plots}
+\end{columns}
+\normalsize
+\end{frame}
+
+\begin{frame}
+\frametitle{Decomposing time series --- \textsc{loess} approach (STL)}
+\begin{columns}
+    \column{7cm}
+    \begin{itemize}
+        \item Decompose series into \textbf{trend}, \textbf{seasonal}, and \textbf{random} components using \textsc{loess}
+        \item The seasonal component is found by \textsc{loess} smoothing of the seasonal sub-series (e.g.~series of January values)
+        \item $x_t$ is deseasonalised and this series is smoothed to find the trend
+        \item Overall level subtracted from seasonal series and added to the trend
+        \item This process is repeated a few times until convergence
+        \item Remainder is the residuals of the trend + seasonal components
+    \end{itemize}
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/stl_plot}
+\end{columns}
+\normalsize
+\end{frame}
+
+\begin{frame}
+    \frametitle{Lowess --- Locally weighted regression}
+    Locally weighted regression scatterplot smoother
+    \begin{columns}
+        \column{7cm}
+        \small
+        \begin{itemize}
+            \item Decide how smooth relationship should be (\alert{span} or size of bandwidth window)
+            \item For target point assign weights to observations based on adjacency to target point
+            \item Fit linear (polynomial) regression to predict target using weighted least squares; repeat
+            \item Compute residuals \& estimate robustness weights based on residuals; well-fitted points have high weight
+            \item Repeat Loess procedure with new weights based on robustness and distance weights
+        \end{itemize}
+        \normalsize
+        \column{5cm}
+        \includegraphics[width=5cm]{figs/loess_demo.pdf}
+    \end{columns}
+    \medskip 
+    Try different span and degree of polynomial to optimise fit
+\end{frame}
+
+\begin{frame}
+    \frametitle{Lowess --- Locally weighted regression}
+    \begin{columns}
+        \column{6cm}
+        \small
+        \begin{itemize}
+            \item Two key choices in Loess
+            \item $\alpha$ is the span or bandwidth parameter, controls the size of the window about the target observation
+            \item Observation outside the window have 0 weight
+            \item Larger the window the more global the fit --- smooth
+            \item The smaller the window the more local the fit --- rough
+            \item $\lambda$ is the degree of polynomial using the the weighted least squares
+            \item $\lambda = 1$ is a linear fit, $\lambda = 2$ is a quadratic fit
+        \end{itemize}
+        \normalsize
+        \column{6cm}
+        \includegraphics[width=6cm]{figs/loess_varying_span_example.pdf}
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Lowess --- Locally weighted regression}
+    \begin{columns}
+        \column{6cm}
+        \small
+        \begin{itemize}
+            \item Two key choices in Loess
+            \item $\alpha$ is the span or bandwidth parameter, controls the size of the window about the target observation
+            \item Observation outside the window have 0 weight
+            \item Larger the window the more global the fit --- smooth
+            \item The smaller the window the more local the fit --- rough
+            \item $\lambda$ is the degree of polynomial using the the weighted least squares
+            \item $\lambda = 1$ is a linear fit, $\lambda = 2$ is a quadratic fit
+        \end{itemize}
+        \normalsize
+        \column{6cm}
+        \includegraphics[width=6cm]{figs/loess_varying_degree_example.pdf}
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Lowess --- Locally weighted regression}
+    ``In any specific application of LOESS, the choice of the two parameters $\alpha$ and $\lambda$ must be based upon a combination of judgement and trial and error. There is no substitute for the latter''\\
+    \smallskip
+    \emph{Cleveland (1993) Visualising Data. AT\&T Bell Laboratories}
+    \medskip
+    \begin{itemize}
+        \item CV can be used to optimise $\alpha$ and $\lambda$ to guard against overfitting the local pattern by producing too rough a smoother or missing local pattern by producing too smooth a smoother
+        \item Loess is perhaps most useful as an exploratory technique as part of EDA
+        \item Cleveland, W.S.~(1979) J.~Amer.~Stat.~Assoc. \textbf{74}, 829--836
+        \item Cleveland, W.S.~(1994) The Elements of Graphing Data. AT\&T Bell Laboratories
+        \item Efron, B \& Tibshirani, R (1981) Science \textbf{253}, 390--395
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Autocorrelation function}
+\small
+\begin{columns}
+    \column{7cm}
+    \begin{itemize}
+        \item \textbf{Sample autocorrelation coefficients} are an important guide to the properties of time series
+        \item Measure the correlation between observations at different distances apart
+        $$r_k = \frac{\sum \limits^{n-k}_{t=1}(x_t - \bar{x})(x_{t+k} - \bar{x})}{\sum \limits^n_{t=1}(x_t-\bar{x})^2}$$
+        \item Computed for small number of lags $k$
+        \item Use min.~of 36 lags to view several seasonal cycles
+        \item Dashed lines drawn at $\pm2 / \sqrt{n}$ enclose insignificant correlations
+        \item Display on a \textbf{correlogram}
+    \end{itemize}
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/recife_acfs}
+\end{columns}
+\normalsize
+\end{frame}
+
+\begin{frame}
+\frametitle{Example correlograms 1}
+\begin{center}
+    \includegraphics[width=9.75cm]{figs/example_acfs1}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Partial autocorrelation function}
+\small
+\begin{columns}
+    \column{7cm}
+    \begin{itemize}
+        \item If $x_t$ and $x_{t-1}$ are highly correlated then $x_{t-1}$ and $x_{t-2}$ will also be highly correlated
+        \item Because $x_t$ and $x_{t-2}$ are highly correlated with $x_{t-1}$, it is likely that $x_t$ and $x_{t-2}$ are also highly correlated
+        \item It would be nicer if we could estimate correlation between $x_t$ and $x_{t-2}$ after removing the effect of $x_{t-1}$
+        \item This is the \textbf{partial autocorrelation}
+        \item The partial autocorrelation $\alpha_k$ is obtained as coefficient $\beta_k$ from the regression
+        $$x_t = \beta_0 + \beta_1x_{t-1} + \beta_2x_{t-2} + \dots + \beta_kx_{t-k}$$
+        \item This is an \textbf{autoregressive} (AR) process of order $k$
+    \end{itemize}
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/recife_pacfs}
+\end{columns}
+\normalsize
+\end{frame}
+
+\begin{frame}
+\frametitle{Example correlograms 2}
+\begin{center}
+    \includegraphics[width=9.75cm]{figs/example_acfs2}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Cross-correlation function}
+\small
+\begin{columns}
+    \column{7cm}
+    \begin{itemize}
+        \item \textbf{Sample cross-correlation function} measures the correlation between observations of two series at different lags
+    \end{itemize}
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/lung_deaths_ccf}
+\end{columns}
+$$r_{xy}(k) = \left\{ \begin{array}{l@{\qquad}l}
+    \displaystyle{\frac{1}{n}\frac{\sum \limits^{n-k}_{t=1}(x_t-\bar{x})(y_{t+k} - \bar{y})}{s_xs_y}} & k = 0,1,\ldots,n-1 \\
+    \displaystyle{\frac{1}{n}\frac{\sum \limits^{n}_{t=1-k}(x_t-\bar{x})(y_{t+k} - \bar{y})}{s_xs_y}} & k = -1,-2,\ldots,-(n-1) \\
+    \end{array} \right.$$
+\normalsize
+\end{frame}
+
+\section{Stochastic Trends}
+\begin{frame}
+    \frametitle{Stochastic Trends}
+    \begin{itemize}
+        \item Tend to think of a trend as a deterministic one polluted by noise
+        $$Y_t = \beta_0 + \beta_1 \mu_t + \varepsilon_t$$
+        \item Other types of trend may be at work; \alert{stochastic trends}
+        \item Here, variation in a time series is determined solely via \alert{dependence} between successive observations rather than a fixed, deterministic trend
+        \item Two stochastic trends fitted from the model
+        $$Y_t = \mathrm{0.9959} Y_{t-1} + \mathrm{-0.5836} Y_{t-2} + \varepsilon_t$$
+    \end{itemize}
+    \begin{center}
+        \includegraphics[width=6cm]{figs/two_stochastic_trends}
+    \end{center}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Useful time series models --- purely random processes}
+    \small
+    \begin{columns}
+    \column{7cm}
+        \begin{itemize}
+            \item Several stochastic processes are useful for modelling time series
+            \item A \textbf{purely random process} consists of mutually independent random variables, distributed normal with zero mean and variance $\sigma^2$
+            \item Such a process has constant mean and variance
+            \item Often termed \textbf{white noise}
+            \item Different values are uncorrelated; $\rho(k) = 1$ if $k=0$, otherwise $\rho(k) = 0$
+            \item As the mean and autocovariance function do not depend on time, the process is second order stationary
+            \item Independence implies the series is strictly stationary
+        \end{itemize}
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/stochastic_processes_plots1}
+    \end{columns}
+    \normalsize
+\end{frame}
+
+\begin{frame}
+    \frametitle{Useful time series models --- random walks}
+    \small
+    \begin{columns}
+    \column{7cm}
+        \begin{itemize}
+            \item Several stochastic processes are useful for modelling time series
+            \item Suppose $\{z_t\}$ is a purely random process with mean $\mu$ and variance $\sigma^2_z$
+            \item A time series is said to be a \textbf{random walk} if
+            $$x_t = x_{t-1} + z_t$$
+            \item If started at 0 when $t=0$ then $x_1 = z_1$ and
+            $$x_t = \sum \limits_{i=1}^t z_i$$
+            \item $x_t$ is the cumulative sum of the random process up to time $t$
+            \item The first differences of a random walk yield a purely random process
+        \end{itemize}
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/stochastic_processes_plots1}
+    \end{columns}
+    \normalsize
+\end{frame}
+
+\begin{frame}
+    \frametitle{Useful time series models --- autoregressive processes}
+    \small
+    \begin{columns}
+    \column{7cm}
+        \begin{itemize}
+            \item Several stochastic processes are useful for modelling time series
+            \item A series $x_t$ is said to be an \textbf{autoregressive} process if
+            $$x_t = \alpha_0 x_{t-1} + \cdots + \alpha_p x_{t-p} + z_t$$
+            \item $x_t$ is a function of past observations plus a purely random process ($z_t$)
+            \item An \textbf{AR($p$)} is a function of the $p$ previous observations --- said to be of order $p$
+            \item AR(1) is the simplest such function, where $x_t = \alpha_1 x_{t-1} + z_t$
+            \item An AR(1) is also called a \textbf{Markov process}
+            \item Can have a non-zero mean and then the AR($p$) contains an intercept (mean) term
+        \end{itemize}
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/stochastic_processes_plots_ar}
+    \end{columns}
+    \normalsize
+\end{frame}
+
+\begin{frame}
+    \frametitle{Useful time series models --- moving average processes}
+    \small
+    \begin{columns}
+    \column{7cm}
+        \begin{itemize}
+            \item Several stochastic processes are useful for modelling time series
+            \item A series $x_t$ is said to be a \textbf{moving average} process if
+            $$x_t = \beta_0 z_t + \beta_1 z_{t-1} + \cdots + \beta_q z_{t-q}$$
+            \item $x_t$ is modelled as a function of the current and past values of a purely random process
+            \item An \textbf{MA($q$)} is of order $q$
+            \item MA(1) is the simplest such function, where $x_t = \beta_0 z_t + \beta_1 z_{t-1}$
+            \item Can have a non-zero mean and then the MA($q$) contains an intercept (mean) term
+            \item The ACF of a MA($q$) has a sharp cut-off
+        \end{itemize}
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/stochastic_processes_plots_ma}
+    \end{columns}
+    \normalsize
+\end{frame}
+
+\begin{frame}
+    \frametitle{Useful time series models --- ARMA models}
+    \small
+    \begin{columns}
+    \column{7cm}
+        \begin{itemize}
+            \item An \textbf{autoregressive moving average} process combines both AR($p$) and MA($q$) terms into a general model for time series
+            $$x_t = \sum \limits_{l = 1}^p \alpha_l x_{t-l} + z_t + \sum \limits_{j = 1}^q \beta_j z_{t-j}$$
+            \item In shorthand we have ARMA($p$,$q$)
+            \begin{itemize}
+                \item $p$ refers to the order of the AR process
+                \item $q$ refers to the order of the MA process
+            \end{itemize}
+        \end{itemize}
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/stochastic_processes_plots_arma}
+    \end{columns}
+    \normalsize
+\end{frame}
+
+\begin{frame}
+    \frametitle{Useful time series models --- ARIMA models}
+    \small
+    \begin{columns}
+    \column{7cm}
+        \begin{itemize}
+            \item An \textbf{autoregressive integrated moving average} process combines both AR($p$) and MA($q$) terms, \textit{and} differencing into a general model for time series
+            $$\nabla^d x_t = \sum \limits_{l = 1}^p \alpha_l \nabla^d x_{t-l} + z_t + \sum \limits_{j = 1}^q \beta_j z_{t-j}$$
+            \item In shorthand we have ARIMA($p$,$d$,$q$)
+            \begin{itemize}
+                \item $p$ refers to the order of the AR
+                \item $q$ refers to the order of the MA
+                \item $d$ refers to the order of the differencing applied to the original $x_t$
+            \end{itemize}
+            \item First-order differencing is usually sufficient so generally $d = 1$
+            \item A random walk can be regarded as an ARIMA(0,1,0)
+        \end{itemize}
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/stochastic_processes_plots_arima}
+    \end{columns}
+    \normalsize
+\end{frame}
+
+%% \begin{frame}
+%%     \frametitle{Useful time series models --- SARIMA models}
+%%     \small
+%%     \begin{columns}
+%%     \column{7cm}
+%%         \begin{itemize}
+%%             \item A \textbf{seasonal autoregressive integrated moving average}, or SARIMA, model acknowledges that in practice many time series contain seasonal components
+%%             \item In a monthly series we expect $x_t$ to depend on $x_{t-12}$ and perhaps $x_{t-24}$ as well as on more recent non-seasonal values such as $x_{t-1}$ and $x_{t-2}$
+%%             \item SARIMA($p$,$d$,$q$)($P$,$D$,$Q$)$_s$
+%%             \begin{itemize}
+%%                 \item $p$: order of the AR
+%%                 \item $q$: order of the MA
+%%                 \item $d$: order of the differencing
+%%                 \item $P$: seasonal order of the AR
+%%                 \item $Q$: seasonal order of the MA
+%%                 \item $D$: order of seasonal differencing
+%%                 \item $s$: the period of seasonality
+%%             \end{itemize}
+%%             \item E.g.~SARIMA(1,1,0)(0,1,1)$_{s = 12}$
+%%         \end{itemize}
+%%     \column{5cm}
+%%     \includegraphics[width=5cm]{figs/stochastic_processes_plots_sarima}
+%%     \end{columns}
+%%     \normalsize
+%% \end{frame}
+
+\begin{frame}
+    \frametitle{Choosing between ARMA models}
+    \footnotesize
+    \begin{columns}
+    \column{4.75cm}
+        \begin{itemize}
+            \item First step; are the data stationary?
+            \item If not difference them
+            \item Then compute the correlogram (ACF)
+            \item If sharp cut-off then MA
+            \item If not, compute partial-ACF
+            \item If sharp cut-off then AR
+            \item If not, ARMA
+            \item If differenced, then use ARIMA choosing AR, MA or ARMA selected above
+            \item If seasonal data, use SARIMA
+        \end{itemize}
+    \column{7cm}
+    \includegraphics[width=7cm]{figs/flowchart_arma}
+    \end{columns}
+    \normalsize
+\end{frame}
+
+\begin{frame}
+    \frametitle{Example --- Mauna Loa $\mathsf{CO_2}$ concentrations}
+    \small
+    \begin{columns}
+    \column{7cm}
+        \begin{itemize}
+            \item $\mathsf{CO_2}$ concentrations (ppm) measured at Mauna Loa 1959--1997
+            \item Develop an appropriate SARIMA model for these data
+            \item Fit model for 1957--1990
+            \item Features:
+            \begin{itemize}
+                \item Trend (differencing)
+                \item Seasonal component (seasonal differencing require)
+                \item Sharp cut-off in ACF suggests MA
+                \item $\nabla^{12}$ not removed all seasonal component; SAR or SMA
+            \end{itemize}
+            \item Fit several models (36) and select using BIC
+            \item $p$(0-2), $d$(1), $q$(0-2), $P$(0-1), $D$(1), $Q$(0-1), $s={12}$
+        \end{itemize}
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/sarima_co2_example}
+    \end{columns}
+    \normalsize
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Example --- Mauna Loa $\mathsf{CO_2}$ concentrations}
+    \small
+    \begin{columns}
+    \column{7cm}
+        \begin{itemize}
+            \item Optimal model has BIC = 151.46
+            \begin{itemize}
+                \item $p$(0), $d$(1), $q$(1), $P$(0), $D$(1), $Q$(1), $s={12}$
+            \end{itemize}
+            \item Diagnostics suggest no major problems with residuals
+        \end{itemize}
+        \scriptsize
+        \begin{verbatim}
+Call:
+arima(x = CO2, order = c(0, 1, 1), 
+      seasonal = c(0, 1, 1))
+
+Coefficients:
+          ma1     sma1
+      -0.3605  -0.8609
+s.e.   0.0545   0.0313
+
+sigma^2 estimated as 0.08031:  
+log likelihood = -66.8,  aic = 139.61
+        \end{verbatim}
+        \small
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/sarima_co2_example_tsdiag}
+    \end{columns}
+    \normalsize
+\end{frame}
+
+\begin{frame}
+    \frametitle{Example --- Mauna Loa $\mathsf{CO_2}$ concentrations}
+    \begin{columns}
+    \column{7cm}
+        \begin{itemize}
+            \item Using the fitted SARIMA model, predict for the years 1991-1997
+            \item Predicted values are in general agreement with the observed trend and seasonality
+            \item Model over predicts for the ``unobserved'' period slightly
+            \item The observed data, however lie within the 95\% confidence interval of the predictions
+        \end{itemize}
+    \column{5cm}
+    \includegraphics[width=5cm]{figs/sarima_co2_example_preds}
+    \end{columns}
+    \normalsize
+\end{frame}
+
+\section{Time series regression}
+
+\begin{frame}
+    \frametitle{Regression models for time series}
+    \begin{itemize}
+        \item The ARIMA family of models allows us to model properties of a single time series
+        \item They help us to understand the stochastic processes that might underlie the observations
+        \item They don't help explain which factors may be driving the observed time series
+        \item If we have additional time series on explanatory variables we can use these to try to explain the response time series
+        \item Can extend ARIMA model to include exogenous variables ARIMAX\ldots
+        \item \ldots~but regression provides a more familiar and powerful way of modelling time series and the effects of predictor variables
+        \item ARIMA-type models assume equally-spaced observations; can have missing data, and hence an irregular sequence
+        \item This means they are of limited use for lots of ecological and palaeoecological data
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Regression models for time series}
+    \begin{itemize}
+        \item Ordinary least squares regression makes assumptions about the model residuals --- \alert{i.i.d.}
+        \begin{itemize}
+            \item Residuals are \textbf{independent} and \textbf{identically} distributed
+            \item Normally distributed, with mean 0 and known variance $\sigma^2$
+        \end{itemize}
+        \item GLMs and GAMs allow us to relax the distributional assumptions to take account of Poisson or binomial data, etc.
+        \item To model time series with regression techniques we need to account for the lack of independence of the observations in some way
+        \item We can extend the linear regression case through the use of \textbf{generalised least squares} \alert{GLS}
+        \item Going further, we can extend GLS to use smoothers and model non-normal responses using \textbf{generalised additive mixed models} \alert{GAMMs}
+        \item This is achieved, primarily, by relaxing the assumptions about the variance, $\sigma^2$
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+   \frametitle{Assumptions of least squares regression}
+   \begin{enumerate}
+      \item The linear model correctly describes the functional relationship between $y$ and $X$
+      \begin{itemize}
+         \item If violated the estimate of predictor variances ($\sigma^2$) will be inflated
+         \item Incorrect model specification can show itself as patterns in the residuals
+      \end{itemize}
+      \item $x_i$ are measured without error
+      \begin{itemize}
+         \item Allows us to isolate the error component as random variation in $y$
+         \item Estimates $\hat{\beta}$ will be biased if there is error in $X$ --- often ignored!
+      \end{itemize}
+      \item For any given value of $x_i$, the sampled $y_i$ values are independent with normally distributed errors
+      \begin{itemize}
+         \item Independence and normality of errors allows us to use parametric theory for confidence intervals and hypothesis tests on the F-ratio.
+      \end{itemize}
+      \item Variances are constant along the regression line/model
+      \begin{itemize}
+         \item Allows a single constant variance $\sigma^2$ for the variance of the regression line/model
+         \item Non-constant variances can be recognised through plots of residuals (amongst others) --- i.e.~residuals get wider as the values of $y$ increase.
+      \end{itemize}
+   \end{enumerate}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Generalised Least Squares}
+    \begin{itemize}
+        \item The familiar least squares regression model can be written
+        $$y = \beta_0 + \beta_1x_1 + \cdots + \beta_ix_i \qquad \varepsilon \sim N(0, \sigma^2 \mathbf{\Lambda})$$
+        \item $\mathbf{\Lambda} \equiv \mathbf{I}$
+        \item $\mathbf{I}$ is the identity matrix
+        \item When multiplied by $\sigma^2$ we get the following covariance matrix
+    \end{itemize}
+    \begin{columns}
+        \column{6cm}
+        $$\mathbf{I} = \left( \begin{array}{cccc}
+                     1        & 0        & \cdots & 0        \\
+                     0        & 1        & \cdots & 0        \\
+                     \vdots   & \vdots   & \ddots & \vdots   \\
+                     0        & 0        & \cdots & 1        \\
+                 \end{array} \right)$$
+        \column{6cm}
+        $$\left( \begin{array}{cccc}
+                     \sigma^2 & 0        & \cdots & 0        \\
+                     0        & \sigma^2 & \cdots & 0        \\
+                     \vdots   & \vdots   & \ddots & \vdots   \\
+                     0        & 0        & \cdots & \sigma^2 \\
+                 \end{array} \right)$$
+    \end{columns}
+    \begin{itemize}
+        \item $\sigma^2$ same for all observations (variance), and all are independent (0 covariance)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Generalised Least Squares}
+    \begin{itemize}
+        \item In least squares, the $\beta$ are estimated by
+        $$\hat{\beta} = (X^{\mathsf{T}}X)^{-1}X^{\mathsf{T}}y$$
+        \item If we now allow for correlated errors and set $\sigma^2\mathbf{I}$ from the previous slide to be $\Sigma_{\varepsilon \varepsilon}$, the coefficients in GLS are estimated by
+        $$\hat{\beta} = (X^{\mathsf{T}}\Sigma_{\varepsilon \varepsilon}^{-1}X)^{-1}X^{\mathsf{T}}\Sigma_{\varepsilon \varepsilon}^{-1}y$$
+        \item We now need to choose a simple enough form for $\Sigma_{\varepsilon \varepsilon}$ so that we can estimate it and all the other parameters in the model from the data in a parsimonious manner
+        \item As $\Sigma_{\varepsilon \varepsilon}$ is not known, estimation of model is done by ML
+        \item It is worth noting that if the diagonal of $\Sigma_{\varepsilon \varepsilon}$ contains different values it indicates different variances for the residuals
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Generalised Least Squares --- correlated errors}
+    \begin{itemize}
+        \item We can assume that the covariance of two errors depends only on their separation in time
+        \item In which case we can use the autocorrelation function and define the autocorrelation at lag $s$ as $\rho_s$, the correlation between two errors that are separated by $|s|$ time periods
+        \item This results in an error covariance matrix with the following pattern
+        $$\mathbf{\Sigma_{\varepsilon \varepsilon}} = \sigma^2_\varepsilon \left( \begin{array}{ccccc}
+                     1          & \rho_1     & \rho_2      & \cdots & \rho_{n-1} \\
+                     \rho_1     & 1          & \rho_1      & \cdots & \rho_{n-2} \\
+                     \rho_2     & \rho_1     & 1           & \cdots & \rho_{n-3} \\
+                     \vdots     & \vdots     & \vdots      & \ddots & \vdots     \\
+                     \rho_{n-1} & \rho_{n-2} & \rho_{n-3} & \cdots & 1          \\
+                 \end{array} \right) = \sigma^2\mathbf{P}$$
+        \item This allows quite a flexible correlation structure, but comes at the costs of estimating $n$ distinct parameters ($\sigma^2$ and $\rho_1,\cdots,\rho_{n-1}$)
+        \item Too many!
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Generalised Least Squares --- correlated errors}
+    \begin{itemize}
+        \item To simplify the model further, we restrict the order of the autocorrelations to a small number of lags
+        \item Usually the first-order AR process is used: $\varepsilon_s = \rho \varepsilon_{s-1} + \eta_s$
+        \item The correlation between two errors at times $t$ and $s$ is
+        $$\mathrm{cor}(\varepsilon_s \varepsilon_t) = \left\lbrace \begin{array}{ll}
+            1            & \mathrm{if} s = t \\
+            \rho^{|t-s|} & \mathrm{else}     \\
+        \end{array}
+        \right. $$
+        \item This results in an error covariance matrix with the following pattern
+        $$\mathbf{\Sigma_{\varepsilon \varepsilon}} = \sigma^2_\varepsilon \left( \begin{array}{ccccc}
+                     1          & \rho       & \rho^2     & \cdots & \rho^{n-1} \\
+                     \rho       & 1          & \rho       & \cdots & \rho^{n-2} \\
+                     \rho^2     & \rho       & 1          & \cdots & \rho^{n-3} \\
+                     \vdots     & \vdots     & \vdots     & \ddots & \vdots     \\
+                     \rho^{n-1} & \rho^{n-2} & \rho^{n-3} & \cdots & 1          \\
+                 \end{array} \right) = \sigma^2\mathbf{P}$$
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Smoothing and correlated errors}
+\small
+\begin{columns}
+    \column{6cm}
+    \begin{itemize}
+        \item Can also use MA or ARMA processes for the model errors
+        \item This is fine for equally-spaced observations, for irregularly spaced observations we need to turn to spatial correlation structures
+        \item Use a 1-D spatial correlation structure to model correlations between two errors that are arbitrary distances apart in time
+        \item Several structures, simplest is Exponential spatial correlation structure
+        \item In 1-D, this is also known as the Continuous-time AR(1) (CAR(1))
+    \end{itemize}
+
+    \column{6cm}
+    \includegraphics[width=6cm]{figs/exponential_correl}
+\end{columns}
+\normalsize
+\end{frame}
+
+\begin{frame}
+   \frametitle{Additive models}
+   \begin{itemize}
+      \item Additive models are a generalization of linear models that replace the sum of regression coefficients $\times$ covariates by a sum of smooth functions of the covariates $X$
+      \item Such a model has the following form
+      $$y = \beta_0 + \sum\limits^j_{p=1} f_j(X_j) + \varepsilon, \quad \varepsilon \sim N(0, \sigma^2\mathbf{\Lambda})$$
+      \item where the $f_j$ are arbitrary smooth functions
+      \item Additive models are more flexible than the linear model but remain interpretable as the $f_j$ can be plotted to show the marginal relationship between the predictor and the response
+   \end{itemize}
+\end{frame}
+
+\begin{frame}
+   \frametitle{Using statistical models on times series data --- trends}
+   \begin{itemize}
+      \item Approach follows closely that of Ferguson et al (2006, 2007)
+      \item A linear model for a trend component in the data might be
+      $$y = \beta_0 + \beta_1time + \varepsilon, \quad \varepsilon \sim N(0, \sigma^2\mathbf{\Lambda})$$
+      \item An additive model for a trend component in the data might be
+      $$y = \beta_0 + f_1(time) + \varepsilon, \quad \varepsilon \sim N(0, \sigma^2\mathbf{\Lambda})$$
+      \item We can compare these two models to select between a linear or smooth (non-linear) trend
+      \item We can also test for the presence of a trend by comparing this model to a null model
+      $$y = \beta_0 + \varepsilon, \quad \varepsilon \sim N(0, \sigma^2\mathbf{\Lambda})$$
+      \item Model testing is does via \textbf{likelihood ratio test} (LRT) and information statistics
+   \end{itemize}
+\end{frame}
+
+\begin{frame}
+   \frametitle{Using statistical models on times series data --- trends}
+   \begin{itemize}
+      \item Additionally, we can include additional predictor variables into the linear predictor to model changes in the response time series as a function of the explanatory variables
+      \item We can also test whether the autocorrelation structure is required using LRT
+      \item As these models are just regression models, use existing, well-developed theory for fitting models
+      \item Using smoothers allows very flexible models to be fitted that include non-linear trends, seasonal smoothers etc.
+      \item However, fitting these models in software is demanding and not for the faint hearted
+   \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Smoothing and correlated errors}
+\small
+\begin{columns}
+    \column{6cm}
+    \begin{itemize}
+        \item Data generated from the model
+        $$y_t = (1280 \times x_t^4) \times (1 - x_t)^4$$
+        \item Added AR(1) noise; $\alpha$ = 0.3713
+        \item Task is to retrieve the trend $y_t$ from the noisy data
+        \item The data exhibit a non-linear trend and we can use a smoother to model this feature of the data
+        \item A problem in smoothing is selecting the bandwidth or complexity of fitted spline
+        \item The usual methods for smoothness selection assume the observations are independent
+    \end{itemize}
+
+    \column{6cm}
+    \includegraphics[width=6cm]{figs/smoothing_example1}
+\end{columns}
+\normalsize
+\end{frame}
+
+\begin{frame}
+\frametitle{Smoothing and correlated errors}
+\small
+\begin{columns}
+    \column{6cm}
+    \begin{itemize}
+        \item Fit three separate models to the data
+        \begin{enumerate}
+            \item Cubic smoothing spline (GCV)
+            \item Additive model (GCV)
+            \item Additive model with AR(1) errors (LMM)
+        \end{enumerate}
+        \item The two models that assume independent errors over fit the data
+        \item Identify structure that is sampling artefact of the data at hand
+        \item Additive model with AR(1) errors fits actual trend will
+        \item $\hat{\phi}$ = 0.403 (0.169, 0.594 95\% CI)
+    \end{itemize}
+
+    \column{6cm}
+    \includegraphics[width=6cm]{figs/smoothing_example2}
+\end{columns}
+\normalsize
+\end{frame}
+
+\begin{frame}
+    \frametitle{NH Global Temperature}
+    \begin{columns}
+        \column{7cm}
+        \begin{itemize}
+            \item Much interest in the patterns shown in temperature records, esp.~in the most recent period
+            \item Classic diagram used in the most recent IPCC Assessment Reports demonstrating trends and rates of change in temperature
+            \item Mann and colleagues filtered the timeseries so had to pad the series at the ends to allow estimates of trends and rates in most recent period
+            \item Padding the series done in several ways, but all involved inventing data for most recent period
+            \item Can we do better with a regression model? --- AM
+        \end{itemize}
+        
+        \column{5cm}
+        \includegraphics[width=5cm]{figs/N_hemisphere_temp}
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+    \frametitle{NH Global Temperature --- additive model}
+    \begin{columns}
+        \column{7cm}
+        \begin{itemize}
+            \item Annual mean global NH temperature anomaly (1960-1990)
+            \item Fitted additive model of form
+            $$y = \beta_0 + f_1(year) + \varepsilon, \: \varepsilon \sim N(0, \sigma^2\mathbf{\Lambda})$$
+            \item Estimated the model with $\mathbf{\Lambda} \equiv \mathbf{I}$
+        \end{itemize}
+        
+        \column{5cm}
+        \includegraphics[width=5cm]{figs/N_hemisphere_fitted_model}
+    \end{columns}
+    \begin{itemize}
+        \item $\mathbf{\Lambda}$ assumed to be simple $\mathrm{AR(p)}$ or $\mathrm{MA(q)}$ or combinations for $p$ and $q$ $\in (1, 2, 3)$
+        \item Fitted ARMAs to the residuals of this model to identify best model for residuals --- AR(1)
+        \item Refitted AM with an AR(1) correlation structure
+        \item Checked for residual correlation
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{NH Global Temperature --- additive model}
+    \begin{columns}
+        \column{7cm}
+        \begin{itemize}
+            \item Interested in rates of change in temperature
+            \item Also in the trend in the most recent period
+            \item Can estimate the first derivatives of the fitted trend to show periods where the first derivative is statistically different from 0
+            \item Use the method of \alert{finite differences}
+            \item Colour the fitted trend according to periods of significant change
+            \begin{itemize}
+                \item Red --- significantly decreasing
+                \item Blue --- significantly increasing
+                \item (\textit{c.f.}~Sizer)
+            \end{itemize}
+        \end{itemize}
+        
+        \column{5cm}
+        \includegraphics[width=5cm]{figs/N_hemisphere_fitted_model_derivs}
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+    \frametitle{NH Global Temperature --- additive model}
+    \begin{columns}
+        \column{7cm}
+        \begin{itemize}
+            \item Uncertainty in fitted trend?
+            \item Recall that the smoother is a spline for which we estimate coefficients $\hat{\beta}^s$
+            \item Each $\hat{\beta}^s$ estimated with uncertainty
+            \item The set of $\hat{\beta}^s$ form a MVN distribution
+            \item Simulate new values for $\hat{\beta}^s$ from the MVN to generate trends consistent with the fitted model
+            \item \alert{Sampling from the posterior distribution of the model parameters}
+            \item Only a tiny proportion of 1000 samples from the posterior distribution suggest that, \alert{given these data}, there is little support for claims that the planet is cooling
+        \end{itemize}
+        
+        \column{5cm}
+        \includegraphics[width=5cm]{figs/N_hemisphere_posterior_sampling}
+    \end{columns}
+\end{frame}
+
+%% \begin{frame}[fragile]
+%%     \frametitle{Practicalities of fitting models using mgcv}
+%%     \begin{itemize}
+%%         \item Simple model for seasonal data
+%%         \scriptsize
+%%         \begin{verbatim}
+%% gamm(y ~ s(time, bs = "cr") + s(doy, bs = "cc", k = 12),
+%%      data = foo, 
+%%      correlation = corCAR1(form = ~ time),
+%%      knots = list(doy = seq(1, 366, length = 12)))           
+%%         \end{verbatim}
+%%         \normalsize
+%%         \item For seasonal smooth, do not want discontinuity between Dec and Jan
+%%         \item Use a cyclic smoothing spline (\texttt{bs = "cc"})
+%%         \item End points have common first and second derivatives --- the end points are ``joined''
+%%         \item Only some types of smoother available in cyclic forms (here using cubic splines)
+%%         \item \texttt{k} is the number of knots to use
+%%         \item If data don't cover start and end of year, specify knots at days 1 and 366 and evenly in between
+%%     \end{itemize}
+%% \end{frame}
+
+%% \begin{frame}[fragile]
+%%     \frametitle{Practicalities of fitting models using mgcv}
+%%     \begin{columns}
+%%         \column{7.5cm}
+%%         \begin{itemize}
+%%             \item Figure shows the two fitted smoothers
+%%             \item Estimated degrees of freedom given on y-axis
+%%             \item Shaded region is an approximate, 95\% point-wise confidence interval on fitted smooths
+%%             \item \texttt{plot(mod, pages = 1, scale = 0)}
+%%         \end{itemize}
+
+%%         \column{5cm}
+%%         \includegraphics[width=5cm]{figs/river_irwell_fitted_gamm_smooths}
+%%     \end{columns}
+
+%% \end{frame}
+
+%% \begin{frame}[fragile]
+%%     \frametitle{Using \texttt{by} variables}
+%%     \begin{itemize}
+%%         \item Sometimes we might want to fit separate trends within seasons
+%%         \item Or fit trends to several sites in a single model
+%%         \item Can use the \alert{\texttt{by}} argument for this
+%%         \scriptsize
+%%         \begin{verbatim}
+%% gamm(y ~ season + s(time, bs = "cr", by = season) + 
+%%          s(doy, bs = "cc", k = 12),
+%%      data = foo, 
+%%      correlation = corCAR1(form = ~ time),
+%%      knots = list(doy = seq(1, 366, length = 12)))           
+%%         \end{verbatim}
+%%         \normalsize
+%%         \item \alert{\texttt{season}} is a factor coding for season
+%%         \item Included as a main term to centre each smooth about that season mean value
+%%         \scriptsize
+%%         \begin{verbatim}
+%% gamm(y ~ season + s(time, bs = "cr") + s(time, bs = "cr", by = season) + 
+%%          s(doy, bs = "cc", k = 12),
+%%      data = foo, 
+%%      correlation = corCAR1(form = ~ time),
+%%      knots = list(doy = seq(1, 366, length = 12)))           
+%%         \end{verbatim}
+%%         \normalsize
+%%         \item Different parametrisation, \alert{\texttt{by}} smoothers now represent deviations from global trend
+%%     \end{itemize}
+%% \end{frame}
+
+%% \begin{frame}
+%%     \frametitle{Using \texttt{by} variables}
+%%     \begin{center}
+%%         \includegraphics[height=8cm]{figs/-vcModelExplanation}
+%%     \end{center}
+%% \end{frame}
+
+%% \begin{frame}[fragile]
+%%     \frametitle{Fitting multivariate models}
+%%     \begin{itemize}
+%%         \item Might want a model that allows seasonal component to vary with the trend
+%%         \item Use a mutivariate smooth; \alert{must} get models properly nested to compare them
+%%         \tiny
+%%         \begin{verbatim}
+%% m1 <- gamm(y ~ s(time, bs = "cr") + s(doy, bs = "cc", k = 12), ...)
+%% m2 <- gamm(y ~ te(time, doy, bs = c("cr", "cc")), data = foo, ...)
+%%         \end{verbatim}
+%%         \normalsize
+%%         \item \alert{\texttt{m1}} is not strictly nested in \alert{\texttt{m2}} because may use different basis
+%%         \item Need \alert{\texttt{te()}} smooth to allow different \alert{\texttt{bs}} for each variable
+%%         \item To get proper nesting fit models as
+%%         \tiny
+%%         \begin{verbatim}
+%% m3 <- gamm(y ~ s(time, bs = "cr", k = 10) + s(doy, bs = "cc", k = 12), ...)
+%% m4 <- gamm(y ~ s(time, bs = "cr", k = 10) + s(doy, bs = "cc", k = 12) + 
+%%                te(time, doy, bs = c("cr", "cc"), k = c(10,12)), data = foo, ...)
+%%         \end{verbatim}
+%%         \normalsize
+%%         \item In \alert{\texttt{m4}} 2d smoother represents how trend and seasonal smooths deviate from global smooths
+%%         \item If \alert{\texttt{m4}} fits better than \alert{\texttt{m3}}, refit model as in \alert{\texttt{m2}} so smooth is easier to interpret/use
+%%     \end{itemize}
+%% \end{frame}
+
+%% \begin{frame}
+%%     \frametitle{Fitting multivariate models}
+%%     \begin{center}
+%%         \includegraphics[height=8cm]{figs/-mvrModelExplanation}
+%%     \end{center}
+%% \end{frame}
+
+\begin{frame}
+    \frametitle{Katy's crazy amounts of data}
+    \begin{itemize}
+        \item Lots, and lots, and lots of XFR data
+        \item Model takes a week to fit
+        \item How can we deal with data like this?
+    \end{itemize}
+    \begin{figure}
+        \center
+        \includegraphics[width=11cm]{figs/Titanium_adaptive_gamma_glm_smoother}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Katy's crazy amounts of data}
+    \begin{itemize}
+        \item Realise that we might have to be subjective here
+        \item Fix the degree of smoothness --- or force use of fewer DF, and
+        \item Use and adaptive smoother
+    \end{itemize}
+    \begin{figure}
+        \center
+        \includegraphics[width=11cm]{figs/Titanium_adaptive_gamma_glm_smoother}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Katy's crazy amounts of data}
+    \begin{itemize}
+        \item Realise that we might have to be subjective here
+        \item Fix the degree of smoothness --- or force use of fewer DF, and
+        \item Use and adaptive smoother
+    \end{itemize}
+    \begin{figure}
+        \center
+        \includegraphics[width=11cm]{figs/Titanium_adaptive_gamma_glm_derivatives_of_smoother}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Katy's crazy amounts of data}
+    \begin{itemize}
+        \item Realise that we might have to be subjective here
+        \item Fix the degree of smoothness --- or force use of fewer DF, and
+        \item Use and adaptive smoother
+    \end{itemize}
+    \begin{figure}
+        \center
+        \includegraphics[width=11cm]{figs/Titanium_adaptive_gamma_glm_smoother_with_derivatives}
+    \end{figure}
+\end{frame}
+
+%% \begin{frame}[fragile]
+%%     \frametitle{\texttt{lmeControl}}
+%%     %% Include info on how to specify control objects
+%%     \begin{itemize}
+%%         \item To control the fitting process, say to print out details of the iterations or to increase number of iterations, we need to use a control object
+%%         \item Import to set \alert{\texttt{niterEM = 0}} when using \texttt{gamm()}
+%%         \item See \alert{\texttt{?lmeControl}} and \alert{\texttt{?gamm}} for details
+%%     \end{itemize}
+%%     \scriptsize
+%%     \begin{verbatim}
+%% ## need a control object
+%% ctrl <- lmeControl(msVerbose = TRUE,
+%%                    maxIter = 400,
+%%                    msMaxIter = 400,
+%%                    niterEM = 0,      ## this is VERY important for gamm()!
+%%                    tolerance = 1e-8,
+%%                    msTol = 1e-8,
+%%                    msMaxEval = 400)
+
+%% ## pass the control object as part of your model fitting call
+%% mod <- gamm(y ~ s(time) + s(doy, bs = "cc", k = 10), data = foo,
+%%             ...., ## other arguments here
+%%             control = ctrl)
+%%     \end{verbatim}
+%%     \normalsize
+%% \end{frame}
+
+\begin{frame}
+    \frametitle{Protocols for fitting GLS and (G)AMM}
+    \begin{itemize}
+        \item Model selection now involves finding the correct fixed effects formulation \textit{and} the correct specification for the model errors
+        \item A protocol for model selection could take the following form
+        \begin{enumerate}
+            \item Fit the fixed effects model you think is plausible without the autocorrelation --- don't worry too much at this stage about getting a minimal, adequate model for the fixed effects
+            \item Now add the autocorrelation structure to the model and refine that --- LRT to see if the correlation is required
+            \item Finally, revisit the fixed effects and remove variables not required
+        \end{enumerate}
+        \item When fitting the correlation structure, don't worry about getting this part exactly correct
+        \item The aim is to add a structure that plausibly accounts for the autocorrelation, not to model it exactly
+        \item In general, this means AR(1) for equally-spaced observations and CAR(1) for unequally-spaced observations
+    \end{itemize}
+\end{frame}
+
+\section{Spectral Analysis}
+
+\begin{frame}
+    \frametitle{Spectral Analysis}
+    \begin{itemize}
+        \item \alert{Spectral analysis}: methods of estimating the spectral density function, or \alert{spectrum}, of a given time series
+        \item Spectral analysis can be used to detect periodic signals corrupted by noise
+        \item Periodic signals; a repeating pattern in a series is \alert{periodic}, with \textbf{period} equal to the length of the pattern
+        \item The \alert{sine} wave is the fundamental periodic signal in mathematics
+        \item Joseph Fourier (1768--1830) showed that good approximations to most periodic signals can be achieved using sums of sine waves
+        \item Spectral analysis is based on sine waves and a decomposition of variation in series into waves of various frequencies
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Sine waves}
+    \begin{itemize}
+        \item A sine wave of \alert{frequency} $\omega$, \alert{amplitude} $A$, and \alert{phase} $\psi$ for time $t$ is
+        $$A\sin(\omega t + \psi)$$
+        \item A general sine wave can be expressed as a weighted sum of sine and cosine functions
+        $$A\sin(\omega t + \psi) = A\cos(\psi)\sin(\omega t) + A\sin(\psi)\cos(\omega t)$$
+        \item A sampled sine wave of any amplitude and phase can be fitted by a linear regression model with the sine and cosine functions as predictor variables
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Sine waves}
+    \begin{itemize}
+        \item Suppose we have a time series of length $n$, $\{x_t : t = 1, \ldots, n\}$ ($n$ is even)
+        \item Fit time series regression with $x_t$ as response and $n - 1$ predictor variables
+        $$\cos\left(\frac{2 \pi t}{n}\right), \sin\left(\frac{2 \pi t}{n}\right), \cos\left(\frac{4 \pi t}{n}\right), \sin\left(\frac{4 \pi t}{n}\right)$$
+        $$\cos\left(\frac{6 \pi t}{n}\right), \sin\left(\frac{6 \pi t}{n}\right), \ldots \cos\left(\frac{2(n/2-1) \pi t}{n}\right), \sin\left(\frac{2(n/2-1) \pi t}{n}\right)$$
+        $$\cos(\pi t)$$
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Sine waves}
+    \begin{itemize}
+        \item Estimated coefficients denoted by $a_1, b_1, a_2, b_2, \ldots, a_{n/2-1}, b_{n/2-1}, a_{n/2}$
+        \item As many coefficients as observations
+        \item No degrees of freedom for errors
+        \item $a_0$ is the intercept, and is the mean of $x$
+        \item Lowest frequency is one cycle (or $2\pi$ radians) per record length, $2\pi / n$ radians per sampling interval (RPSI)
+        \item General frequency, $m$ cycles per sampling interval ($2\pi m/n$ RPSI), $m$ is integer between 1 and $n/2$
+        \item highest frequency, 0.5 cycles per sampling interval ($\pi$ RPSI), $n/2$ cycles in the series
+        \item Sine wave that makes $m$ cycles in series length is the \alert{$m$th harmonic}
+        \item Amplitude of $m$th harmonic is $A_m = \sqrt{a^2_m + b^2_m}$
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Raw Periodogram}
+    \begin{itemize}
+        \item Amplitude of $m$th harmonic is $A_m = \sqrt{a^2_m + b^2_m}$
+        \item \alert{Parseval's Theorem} expresses variance of a series as a sum of $n/2$ components at integer frequencies $1, \ldots, n/2$
+        $$\mathrm{Var}(x) = \frac{1}{2} \sum_{m=1}^{(n/2)-1} A^2_m + A^2_{n/2}$$
+        \item In general, instead of via a regression, the calculations above are usually performed with the \alert{fast fourier transform} (FFT) algorithm
+        \item A plot of $A^2_m$ as spikes against $m$ is a \alert{Fourier line spectrum}
+        \item \alert{Raw periodogram} is produced by joining the tips of the spikes in the Fourier line spectrum and scaling area equal to the variance
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Smoothed Periodogram}
+    \begin{itemize}
+        \item Periodogram distributes variance over frequency but has two drawbacks
+        \begin{itemize}
+            \item Precise set of frequencies is arbitrary, depends on series length
+            \item Periodogram does not get smoother as series length increases --- just gets more packed
+        \end{itemize}
+        \item The remedy to this is to \alert{smooth} the periodogram
+        \item Smooth the spikes of the Fourier line spectrum using moving averages before joining the tips
+        \item \alert{Smoothed periodogram} also known as the \alert{(sample) spectrum}
+        \item Smoothing will reduce the heights of the peaks and excessive smoothing will blur the features we are interested in
+        \item In practice try several degrees of smoothing
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Example Periodograms --- white noise}
+    \begin{center}
+        \includegraphics[width=11cm]{figs/random_spectrum}
+    \end{center}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Example Periodograms --- AR(1) v1}
+    \begin{center}
+        \includegraphics[width=7.5cm]{figs/ar1_v1_spectrum}
+    \end{center}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Example Periodograms --- AR(1) v2}
+    \begin{center}
+        \includegraphics[width=7.5cm]{figs/ar1_v2_spectrum}
+    \end{center}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Southern Oscillation Index}
+    \begin{center}
+        \includegraphics[width=11cm]{figs/soi_spectrum}
+    \end{center}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Aliasing and the Nyquist frequency}
+    \begin{itemize}
+        \item Many time series are discrete measurements of a continuous process
+        \item Important to sample at high enough frequency to capture highest frequency oscillations in process
+        \item If sampling frequency is too low, miss information
+        \item Also, real high frequency variation will show up as lower frequency variation
+        \item This is known as \alert{aliasing}
+        \item The \alert{Nyquist frequency} is half the sampling frequency and is the maximum frequency we can recover from the data series collected
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Aliasing}
+    \begin{center}
+        \includegraphics[width=12cm]{figs/aliasing}
+    \end{center}
+\end{frame}
+
+%% \begin{frame}
+%%     \frametitle{Autoregressive spectrum estimation}
+%%     \begin{itemize}
+%%         \item An alternative method for estimating the spectrum of a time series is to fit an ARMA($p$, $q$) model to the series
+%%         \item They one can use the theoretical spectrum of the ARMA($p$, $q$) model to compute the spectrum
+%%         \item In general, a high-order AR($p$) model is used
+%%         \item In \texttt{spectrum()} we can use this via \texttt{method = "ar"}
+%%         \item Tends to give a very smooth estimate of the spectrum as $p$ becomes large
+%%         \item \texttt{spectrum()} estimates the order $p$ using AIC
+%%     \end{itemize}
+%% \end{frame}
+
+%% \begin{frame}
+%%     \frametitle{Autoregressive spectrum --- SOI}
+%%     \begin{center}
+%%         \includegraphics[width=9.75cm]{figs/soi_compare_spectrum}
+%%     \end{center}
+%% \end{frame}
+
+\begin{frame}
+    \frametitle{Further reading}
+    \footnotesize
+    \begin{itemize}
+        \item Andersen et al (2008) Ecological thresholds and regime shifts: approaches to identification. Trends in Ecology and Evolution \textbf{24}(1), 49--57.
+        \item Chandler \& Scott (2011) Statistical Methods for Trend Detection and Analysis in the Environmental Sciences. Wiley-Blackwell.
+        \item Chatfield (2004) \textit{The Analysis of Time Series: An Introduction}. 6th Edition. Chapman \& Hall/CRC.
+        \item Cowpertwait \& Metcalfe (2009) \textit{Introductory Time Series with R}. Springer.
+        \item Diggle (1990) \textit{Time Series; A Biostatistical Introduction}. Oxford University Press.
+        \item Ferguson et al (2007) Assessing ecological responses to environmental change using statistical models. \textit{Journal of Applied Ecology}, \textbf{45(1)}, 193--203.
+        \item Fox (2008) \textit{Applied Regression Analysis and Generalized Linear Models}. Sage. (Chapter 16)
+        \item Wood (2006)\textit{ Generalized Additive Model: An Introduction with R}. Chapman \& Hall/CRC.
+        \item Zuur et al (2007) \textit{Analysing Ecological Data}. Springer.
+        \item Zuur et al (2009) \textit{Mixed Effects Models and Extensions in Ecology with R}. Springer.
+    \end{itemize}
+    \normalsize
+\end{frame}
+
+\end{document}
