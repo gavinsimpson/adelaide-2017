@@ -68,6 +68,15 @@
 \newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{{#1}}}
 \newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{{#1}}}}
 \newcommand{\NormalTok}[1]{{#1}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight0.8\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
 
 % Prevent slide breaks in the middle of a paragraph:
 \widowpenalties 1 10000
@@ -120,10 +129,10 @@
 \makeatletter
 \def\verbatim{\tiny\@verbatim \frenchspacing\@vobeyspaces \@xverbatim}
 \makeatother
-%\setlength{\parskip}{0pt}
+\setlength{\parskip}{0pt}
 \setlength{\OuterFrameSep}{-4pt} % was -4pt
 \makeatletter
-\preto{\@verbatim}{\topsep=-10pt \partopsep=-10pt} % were 10pt
+\preto{\@verbatim}{\topsep=-10pt \partopsep=-10pt} % were -10pt
 \makeatother
 
 \title{Stratigraphic Data}
@@ -136,6 +145,23 @@
 \section{Introduction}\label{introduction}
 
 \begin{frame}{Introduction}
+
+Stratigraphic data are usually a multivariate time series
+
+Common things we want to do to these data are
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  summarise changes in the data
+\item
+  estimate rates of change
+\item
+  zone or cluster the data
+\item
+  fit models to the time series
+\end{enumerate}
 
 \end{frame}
 
@@ -511,196 +537,12 @@ Visualise the fitted curve in PCA space
 
 \begin{frame}{Rate of change analyis}
 
-TODO - needs an example
+\begin{center}\includegraphics[width=0.95\linewidth]{02-stratigraphic-data_files/figure-beamer/abernethy-roc-1} \end{center}
 
 \end{frame}
 
 \section{Chronological clustering
 (zonation)}\label{chronological-clustering-zonation}
-
-\begin{frame}{Chronological clustering}
-
-\begin{itemize}
-\tightlist
-\item
-  Chronological (or constrained) clustering commonly used to partition a
-  sediment sequence into 2 or more zones
-\item
-  Useful for, \emph{inter alia}
-
-  \begin{itemize}
-  \tightlist
-  \item
-    delineating periods of similar species composition
-  \item
-    identifying discontinuities or periods of rapid change
-  \item
-    to facilitate description of a stratigraphic sequence
-  \end{itemize}
-\item
-  As with standard cluster analysis, plethora of methods available
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Optimal partitioning
-  \item
-    Binary (divisive) splitting
-  \item
-    Agglomerative partitioning
-  \end{itemize}
-\item
-  Can be used with any dissimilarity (in theory), but common ones are
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Cluster sums of squares (within-group Euclidean distance)
-  \item
-    Cluster-wise information statistic
-  \end{itemize}
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Chronological clustering}
-
-\begin{itemize}
-\tightlist
-\item
-  Optimal partitioning
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Identifies optimal locations for splits to form \(k\) zones
-  \item
-    Non-hierarchical, 3 zone solution \textbf{not} found by splitting
-    one of the zones from the two zone solution
-  \item
-    Split placed to minimise within-cluster sum of squares or
-    information content
-  \end{itemize}
-\item
-  Binary (divisive) splitting
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Similar to optimal method but \textit{is} hierarchical
-  \item
-    Split sequence into two zones, then split one of the 2 resulting
-    zones, repeat
-  \item
-    Zone that is split is the one that would reduce within-group SS or
-    IC the most
-  \end{itemize}
-\item
-  Agglomerative partitioning
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Start with all samples in separate zones and fuse the most similar
-    adjacent samples
-  \item
-    Repeat, each time fusing most similar samples or zones
-  \end{itemize}
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{CONISS}
-
-es the long, sequential gradient in vegetation in a single variable -
-The PC explains 96\% of the variance in the absolute pollen data - PCA
-axis 1 explains 47\% and CA axis 1 31\% of the variance in the data - We
-need at least 2 PCA axes to fully capture the single gradient (80.2\%) -
-Distance along the curve between adjacent time points is a measure of
-compositional change - Can be expressed as a rate of compositional
-change --- highlights the periods of rapid compositional change in the
-Abernethy sequence
-
-\end{frame}
-
-\section{Rate of change analysis}\label{rate-of-change-analysis-3}
-
-\begin{frame}{Rate of change analysis}
-
-\begin{itemize}
-\tightlist
-\item
-  Stratigraphic sequences record changes over time
-\item
-  How quickly do these changes take place?
-\item
-  Rate of change analysis aims to answer this
-\item
-  Two general approaches:
-
-  \begin{itemize}
-  \tightlist
-  \item
-    change in ordination units
-  \item
-    change measured in dissimilarity
-  \end{itemize}
-\item
-  Could also use
-
-  \begin{itemize}
-  \tightlist
-  \item
-    derivatives of splines from principal curve
-  \item
-    derivatives of GAM(s) fitted to variables of interest
-  \end{itemize}
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Rate of change analysis}
-
-\begin{itemize}
-\tightlist
-\item
-  Jacobsen \& Grimm (1988) method involves
-
-  \begin{itemize}
-  \tightlist
-  \item
-    smooth the data
-  \item
-    interpolate to constant time intervals
-  \item
-    ordinate smoothed, interpolate data (e.g.\textasciitilde{}using DCA)
-  \item
-    calculate change in ordination/axis score units as measure of RoC
-  \end{itemize}
-\item
-  Dissimilarity-based approach can be performed two ways
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Smooth the data \& interpolate, \emph{then} compute dissimilarity
-    between interpolated levels
-  \item
-    Compute dissimilarity between adjacent samples directly, then
-    standardise dissimilarity by time interval between samples.
-  \end{itemize}
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Rate of change analyis}
-
-TODO - needs an example
-
-\end{frame}
-
-\section{Chronological clustering
-(zonation)}\label{chronological-clustering-zonation-1}
 
 \begin{frame}{Chronological clustering}
 
@@ -796,19 +638,66 @@ TODO - needs an example
 
 \begin{frame}{Chronological clustering}
 
-TODO insert HJBB's figure 1 from chpt 11 DPER5
+\begin{figure}[htbp]
+\centering
+\includegraphics{./figs/Chapter11_Ch11_fig1-rotated.pdf}
+\caption{}
+\end{figure}
 
 \end{frame}
 
-\begin{frame}{CONISS}
+\begin{frame}{CONISS --- Number of Zones?}
+
+CONISS applied to Round Loch of Glenhead short core
+
+Number of zones determined by
+
+\begin{itemize}
+\tightlist
+\item
+  screeplot
+\item
+  broken stick (Bennett, 1996, \emph{New Phytologist} \textbf{132},
+  155--170)
+\end{itemize}
 
 \begin{center}\includegraphics[width=0.7\linewidth]{02-stratigraphic-data_files/figure-beamer/coniss-1-1} \end{center}
 
 \end{frame}
 
-\begin{frame}{Binary splitting via MRT}
+\begin{frame}[fragile]{Binary splitting via MRT}
+
+\alert{Binary splitting} or \alert{recursive partitioning} applied to
+the Abernethy Forest pollen record
+
+Fitted via a \alert{multivariate regression tree} with \textbf{Age} as
+only predictor \& number of zones determined by
+
+\begin{itemize}
+\tightlist
+\item
+  Cross validation and cost-complexity pruning (see Simpson \& Birks,
+  2011, Chapter 8, DPER Vol. 5)
+\item
+  Conditional inference (R package \textbf{partykit} and
+  \texttt{ctree()})
+\end{itemize}
 
 \begin{center}\includegraphics[width=0.9\linewidth]{02-stratigraphic-data_files/figure-beamer/mrt-partykit-abernethy-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Re-use}
+
+Copyright © (2015--2017) Gavin L. Simpson Some Rights Reserved
+
+Unless indicated otherwise, this slide deck is licensed under a
+\href{http://creativecommons.org/licenses/by/4.0/}{Creative Commons
+Attribution 4.0 International License}.
+
+\begin{center}
+  \ccby
+\end{center}
 
 \end{frame}
 

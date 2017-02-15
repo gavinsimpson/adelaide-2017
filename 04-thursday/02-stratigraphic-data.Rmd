@@ -42,6 +42,15 @@ theme_set(theme_bw())
 
 ## Introduction
 
+Stratigraphic data are usually a multivariate time series 
+
+Common things we want to do to these data are
+
+1. summarise changes in the data
+2. estimate rates of change
+3. zone or cluster the data
+4. fit models to the time series
+
 # Summarising stratigraphic data
 
 ## Summarising change in stratigraphic data
@@ -295,76 +304,29 @@ par(op)
 
 ## Rate of change analyis
 
-TODO - needs an example
+```{r abernethy-roc, echo=FALSE, out.width="0.95\\linewidth"}
+library("analogue")
+library("ggplot2")
+theme_set(theme_bw())
+data(abernethy)
+nc <- ncol(abernethy)
+aber <- abernethy[, seq_len(nc - 2L)]
+agedepth <- abernethy[, c(nc-1, nc)]
 
-# Chronological clustering (zonation)
+## distances
+dij <- as.matrix(dist(decostand(aber, method = "hellinger")))
+dij <- dij[row(dij) == col(dij) + 1]
 
-## Chronological clustering
+roc <- with(agedepth, as.data.frame(cbind(age = Age[-1], dij = dij, tdiff = diff(Age))))
+roc <- transform(roc, age = age - (tdiff/2), roc = (dij / tdiff) * 100)
 
-- Chronological (or constrained) clustering commonly used to partition a sediment sequence into 2 or more zones
-- Useful for, *inter alia*
-    - delineating periods of similar species composition
-    - identifying discontinuities or periods of rapid change
-    - to facilitate description of a stratigraphic sequence
-- As with standard cluster analysis, plethora of methods available
-    - Optimal partitioning
-    - Binary (divisive) splitting
-    - Agglomerative partitioning
-- Can be used with any dissimilarity (in theory), but common ones are
-    - Cluster sums of squares (within-group Euclidean distance)
-    - Cluster-wise information statistic
-
-## Chronological clustering
-
-- Optimal partitioning
-    - Identifies optimal locations for splits to form $k$ zones
-    - Non-hierarchical, 3 zone solution \textbf{not} found by splitting one of the zones from the two zone solution
-    - Split placed to minimise within-cluster sum of squares or information content
-- Binary (divisive) splitting
-    - Similar to optimal method but \textit{is} hierarchical
-    - Split sequence into two zones, then split one of the 2 resulting zones, repeat
-    - Zone that is split is the one that would reduce within-group SS or IC the most
-- Agglomerative partitioning
-    - Start with all samples in separate zones and fuse the most similar adjacent samples
-    - Repeat, each time fusing most similar samples or zones
-
-## CONISS
-
-es the long, sequential gradient in vegetation in a single variable
-- The PC explains 96% of the variance in the absolute pollen data
-- PCA axis 1 explains 47% and CA axis 1 31\% of the variance in the data
-- We need at least 2 PCA axes to fully capture the single gradient (80.2%)
-- Distance along the curve between adjacent time points is a measure of compositional change
-- Can be expressed as a rate of compositional change --- highlights the periods of rapid compositional change in the Abernethy sequence
-
-# Rate of change analysis
-
-## Rate of change analysis
-
-- Stratigraphic sequences record changes over time
-- How quickly do these changes take place?
-- Rate of change analysis aims to answer this
-- Two general approaches:
-    - change in ordination units
-    - change measured in dissimilarity
-- Could also use
-    - derivatives of splines from principal curve
-	- derivatives of GAM(s) fitted to variables of interest
-
-## Rate of change analysis
-
-- Jacobsen & Grimm (1988) method involves
-    - smooth the data
-    - interpolate to constant time intervals
-    - ordinate smoothed, interpolate data (e.g.~using DCA)
-    - calculate change in ordination/axis score units as measure of RoC
-- Dissimilarity-based approach can be performed two ways
-    - Smooth the data & interpolate, *then* compute dissimilarity between interpolated levels
-    - Compute dissimilarity between adjacent samples directly, then standardise dissimilarity by time interval between samples.
-
-## Rate of change analyis
-
-TODO - needs an example
+ggplot(roc, aes(x = age, y = roc)) +
+    geom_path() +
+    geom_point() +
+    labs(x = "Years BP", y = expression(Rate ~ of ~ Change ~ (yr^{-100})),
+         title = "Abernethy Forest Rate of Change", subtitle = "Hellinger distance") +
+    scale_x_reverse()
+```
 
 # Chronological clustering (zonation)
 
@@ -399,9 +361,16 @@ TODO - needs an example
 
 ## Chronological clustering
 
-TODO insert HJBB's figure 1 from chpt 11 DPER5
+![](./figs/Chapter11_Ch11_fig1-rotated.pdf)
 
-## CONISS
+## CONISS --- Number of Zones?
+
+CONISS applied to Round Loch of Glenhead short core
+
+Number of zones determined by
+
+- screeplot
+- broken stick (Bennett, 1996, *New Phytologist* **132**, 155--170)
 
 ```{r coniss-1, results="hide", crop.plot=TRUE, fig.width=10, fig.height=5, out.width="0.7\\linewidth"}
 data(RLGH)
@@ -415,6 +384,13 @@ layout(1)
 
 ## Binary splitting via MRT
 
+\alert{Binary splitting} or \alert{recursive partitioning} applied to the Abernethy Forest pollen record
+
+Fitted via a \alert{multivariate regression tree} with **Age** as only predictor & number of zones determined by
+
+- Cross validation and cost-complexity pruning (see Simpson & Birks, 2011, Chapter 8, DPER Vol. 5)
+- Conditional inference (R package **partykit** and `ctree()`)
+
 ```{r mrt-partykit-abernethy, fig.height=6, fig.width=16, out.width="0.9\\linewidth"}
 aber2 <- chooseTaxa(abernethy2, n.occ = 2, max.abun = 5)
 names(aber2) <- gsub(" ", "", names(aber2))
@@ -424,3 +400,13 @@ aber2 <- cbind(aber2, Age = abernethy$Age)
 sptree <- ctree(frm, data = aber2, teststat = "max", minsplit = 2)
 plot(sptree, terminal_panel = node_barplot, tp_args = list(rot = 45, just = c("right")))
 ```
+
+## Re-use
+
+Copyright © (2015--2017) Gavin L. Simpson Some Rights Reserved
+
+Unless indicated otherwise, this slide deck is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
+
+\begin{center}
+  \ccby
+\end{center}
