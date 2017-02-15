@@ -4,6 +4,11 @@
 02-stratigraphic-data.pdf: 02-stratigraphic-data.Rmd
 	Rscript -e "rmarkdown::render(\"02-stratigraphic-data.Rmd\")"
 
+04-stratigraphic-prac.pdf: 04-stratigraphic-prac.Rnw
+	R CMD Sweave 04-stratigraphic-prac.Rnw
+	R CMD texi2pdf --build=clean 04-stratigraphic-prac.tex
+	rm Rplots.pdf
+
 purl: 01-time-series.Rmd  02-stratigraphic-data.Rmd
 	Rscript -e "knitr::purl(\"01-time-series.Rmd\")"
 	Rscript -e "knitr::purl(\"02-stratigraphic-data.Rmd\")"
