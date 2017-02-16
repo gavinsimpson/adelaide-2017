@@ -1,0 +1,112 @@
+---
+title: "Braya-sø"
+author: Gavin Simpson
+date: February 2017
+fontsize: 11pt
+geometry: margin=1in
+output:
+  pdf_document:
+    highlight: tango
+    fig_width: 6
+    fig_height: 3.5
+    fig_crop: false
+    pandoc_args: [
+      "--latex-engine=xelatex"
+    ]
+---
+
+```{r setup-options, echo = FALSE, results = "hide", message = FALSE}
+knitr::opts_chunk$set(comment=NA, fig.align = "center", out.width = "0.7\\linewidth",
+                      echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE)
+knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
+```
+
+## Introduction
+
+In this example, you'll work with the Braya-sø record that I used in the seminar yesterday. First load some packages
+
+```{r packages, echo = TRUE, results = "hide", cache=FALSE}
+library("mgcv")
+library("ggplot2")
+theme_set(theme_bw())
+```
+
+```{r braya-so-data, echo=FALSE}
+braya <- read.table("../00-data-sets/DAndrea.2011.Lake Braya So.txt", skip = 84)
+```
+
+Next load the data
+
+```{r braya-so-data-2, echo=TRUE, eval=FALSE}
+braya <- read.tabl("DAndrea.2011.Lake Braya So.txt", skip = 84)
+```
+
+We need to do a little data manipulation to fix up the variable names and to add a `sampleInterval` variable. The we prepare a plot of the data using **ggplot2**
+
+```{r braya-so-plot, out.width = "0.9\\linewidth"}
+names(braya) <- c("Depth", "DepthUpper", "DepthLower", "Year", "YearYoung", "YearOld", "UK37")
+braya <- transform(braya, sampleInterval = YearYoung - YearOld)
+
+## Generate a plot of the data
+ylabel <- expression(italic(U)[37]^{italic(k)})
+ggplot(braya, aes(x = Year, y = UK37)) +
+    geom_line(colour = "grey") +
+    geom_point() +
+    labs(y = ylabel)
+```
+
+The standard GAM we might fit would be a thin-plate spline model. We pass in `sampleInterval` to the `weights` argument. We also need to set the basis quite large in order to capture the true model.
+
+```{r fit-gam-braya-so, out.width = "0.9\\linewidth"}
+## Model 6: TPRS, weights as sampleInterval, k = needs to be higher
+mod6 <- gam(UK37 ~ s(Year, k = 40, bs = "tp"), data = braya, method = "REML",
+            weights = sampleInterval)
+summary(mod6)
+```
+
+Now we have the fitted model, we can draw the fitted trend using techniques we've seen elsewhere on the course
+
+```{r plot-gam-braya-so}
+N <- 500
+newYear <- with(braya, data.frame(Year = seq(min(Year), max(Year), length.out = N)))
+newYear <- cbind(newYear, data.frame(predict(mod6, newYear, se.fit = TRUE,
+                                             unconditional = TRUE)))
+newYear <- transform(newYear, upper = fit + (2 * se.fit), lower = fit - (2 * se.fit))
+
+## Draw the fitted spline on the data
+plt.fit <- ggplot(braya, aes(x = Year, y = UK37)) +
+    geom_ribbon(data = newYear, aes(ymin = lower, ymax = upper, x = Year),
+                inherit.aes = FALSE, alpha = 0.25, fill = "steelblue3") +
+    geom_line(data = newYear, aes(y = fit, x = Year), size = 1, colour = "steelblue3") +
+    geom_point() +
+    labs(y = ylabel)
+plt.fit
+```
+
+The thin-plate spline model overfits the record in some parts. We might try an adaptive spline instead of the thin-plate spline. To change he spline type, we us `bs = "ad"` for adaptive spline
+
+```{r fit-ad-gam-braya-so}
+## Model 3: Adaptive spline, weights as sampleInterval
+mod3 <- gam(UK37 ~ s(Year, k = 30, bs = "ad"), data = braya,
+            method = "REML", weights = sampleInterval)
+summary(mod3)
+```
+
+We can now plot this model to look at the fitted trend and compare how it fits relative to the thin-plate one
+
+```{r plot-ad-gam-braya-so}
+N <- 500
+newYear <- with(braya, data.frame(Year = seq(min(Year), max(Year), length.out = N)))
+newYear <- cbind(newYear, data.frame(predict(mod3, newYear, se.fit = TRUE,
+                                             unconditional = TRUE)))
+newYear <- transform(newYear, upper = fit + (2 * se.fit), lower = fit - (2 * se.fit))
+
+## Draw the fitted spline on the data
+plt.ad <- ggplot(braya, aes(x = Year, y = UK37)) +
+    geom_ribbon(data = newYear, aes(ymin = lower, ymax = upper, x = Year),
+                inherit.aes = FALSE, alpha = 0.25, fill = "steelblue3") +
+    geom_line(data = newYear, aes(y = fit, x = Year), size = 1, colour = "steelblue3") +
+    geom_point() +
+    labs(y = ylabel)
+plt.ad
+```
