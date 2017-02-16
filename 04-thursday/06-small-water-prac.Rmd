@@ -1,0 +1,104 @@
+---
+title: "Small water stable isotopes"
+author: Gavin Simpson
+date: February 2017
+fontsize: 11pt
+geometry: margin=1in
+output:
+  pdf_document:
+    highlight: tango
+    fig_width: 6
+    fig_height: 3.5
+    fig_crop: false
+    pandoc_args: [
+      "--latex-engine=xelatex"
+    ]
+---
+
+```{r setup-options, echo = FALSE, results = "hide", message = FALSE}
+knitr::opts_chunk$set(comment=NA, fig.align = "center", out.width = "0.7\\linewidth",
+                      echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE)
+knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
+```
+
+## Introduction
+
+In this example, you'll work with a $\delta^{15}N$ isotope record from Small Water, a small corrie lake in the UK Lake District. Begin by loading some packages
+
+```{r packages, echo = TRUE, results = "hide", cache=FALSE}
+library("mgcv")
+library("ggplot2")
+theme_set(theme_bw())
+```
+
+```{r small-data, echo=FALSE}
+small <- readRDS("../00-data-sets/small-water-isotope-data.rds")
+head(small)
+```
+
+Next load the data
+
+```{r braya-so-data-2, echo=TRUE, eval=FALSE}
+small <- readRDS("small-water-isotope-data.rds")
+head(small)
+```
+
+Next we prepare a plot of the data using **ggplot2**
+
+```{r small-plot, out.width = "0.9\\linewidth"}
+ggplot(small, aes(x = Year, y = d15N)) +
+    geom_point(colour = "black") +
+    theme_bw() +
+    ylab(expression(delta^{15}*N ~(Bulk~Organic~Matter)))
+```
+
+To fit a GAM with an autocorrelation structure we need the `gamm()` function, with an extra "m"
+
+```{r small-model-fit}
+## model it using gamm()
+mod <- gamm(d15N ~ s(Year, k = 15), data = small,
+            correlation = corCAR1(form = ~ Year), method = "REML")
+```
+
+The `gamm()` function fits using a mixed model and as such as two different sides, a GAM side and a mixed model side. We need to look at each side to get out relevant information. the `intervals()` function extracts a confidence interval and estimate for the $\phi$ parameter which is the measure of autocorrelation
+
+```{r small-summaries}
+summary(mod$gam)
+intervals(mod$lme, which = "var-cov")
+plot(mod$gam)
+```
+
+What does this correlation function look like? Here we pull out details of the structure and draw the corresponding correlation function
+
+```{r cor-struct}
+## plot CAR(1) process
+maxS <- with(small, diff(range(Year))) ## too large, truncate to 50
+S <- seq(0, 50, length = 100)
+phi <- intervals(mod$lme, which = "var-cov")$corStruct
+car1 <- setNames(as.data.frame(t(outer(phi, S, FUN = `^`)[1, , ])),
+                 c("Lower","Correlation","Upper"))
+car1 <- transform(car1, S = S)
+
+car1Plt <- ggplot(car1, aes(x = S, y = Correlation)) +
+    geom_ribbon(aes(ymax = Upper, ymin = Lower),
+                fill = "grey", alpha = 0.3) +
+    geom_line() +
+    ylab(expression(italic(h) * (list(Delta[t], phi))))
+car1Plt
+```
+
+The fitted model and data can be plotted using the code below
+
+```{r model-predict-plot}
+## Predict from model
+newYear <- with(small, data.frame(Year = seq(min(Year), max(Year), length.out = 100)))
+newYear <- cbind(newYear, data.frame(predict(mod$gam, newYear, se.fit = TRUE)))
+
+## Draw the fitted spline on the data
+plt.fit <- ggplot(small, aes(x = Year, y = d15N)) +
+    geom_line(data = newYear, aes(y = fit, x = Year), colour = "black") +
+    geom_point(colour = "black") +
+    theme_bw() +
+    ylab(expression(delta^{15}*N ~(Bulk~Organic~Matter)))
+plt.fit
+```
