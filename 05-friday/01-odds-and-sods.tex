@@ -1,0 +1,555 @@
+\documentclass[11pt,ignorenonframetext,compress, aspectratio=169]{beamer}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath,mathtools}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  %%\defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+  \defaultfontfeatures{Scale=MatchLowercase}
+\fi
+\usetheme[]{metropolis}
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\newif\ifbibliography
+\usepackage{longtable,booktabs}
+\usepackage{caption}
+% These lines are needed to make table captions work with longtable:
+\makeatletter
+\def\fnum@table{\tablename~\thetable}
+\makeatother
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight0.8\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+
+% Prevent slide breaks in the middle of a paragraph:
+\widowpenalties 1 10000
+\raggedbottom
+
+\AtBeginPart{
+  \let\insertpartnumber\relax
+  \let\partname\relax
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \let\insertsectionnumber\relax
+    \let\sectionname\relax
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \let\insertsubsectionnumber\relax
+  \let\subsectionname\relax
+  \frame{\subsectionpage}
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+
+%% GLS Added
+% Textcomp for various common symbols
+\usepackage{textcomp}
+
+\usepackage{booktabs}
+
+% Creative Commons Icons
+\usepackage[scale=1]{ccicons}
+
+\newenvironment{centrefig}{\begin{figure}\centering}{\end{figure}}
+\newcommand{\columnsbegin}{\begin{columns}}
+\newcommand{\columnsend}{\end{columns}}
+\newcommand{\centreFigBegin}{\begin{figure}\centering}
+\newcommand{\centreFigEnd}{\end{figure}}
+%%
+
+
+\title{Odds and sods}
+\author{Gavin L. Simpson}
+\date{U Adelaide 2017 • Feb 13--17 2017}
+
+\begin{document}
+\frame{\titlepage}
+
+\section{Spectral analysis \&
+wavelets}\label{spectral-analysis-wavelets}
+
+\begin{frame}{Spectral analysis}
+
+\end{frame}
+
+\begin{frame}{Lomb-Scargle power spectrum}
+
+Sprectral analysis requires evenly spaced data --- at least the
+classical methods do
+
+Could use interpolation to make the data enevnly spaced --- introduces
+strong artefacts into the data
+
+Lomb evaluated the sine and cosine functions only at the observed time
+points with an offset \(\tau\), which makes the \(P_x(\omega)\)
+independent of the time points being shifted around
+
+Scargle showed that the choice of \(\tau\) used by Lomb has the effect
+that \(P_x(\omega)\) obtained using Lomb's method are identical to the
+least squares fit
+
+\[t_t = A \cos \omega t + B \sin \omega t\]
+
+(\(\omega\) is the angular frequency)
+
+\end{frame}
+
+\begin{frame}{Lomb-Scargle power spectrum}
+
+\begin{center}\includegraphics[width=0.7\linewidth]{01-odds-and-sods_files/figure-beamer/lomb-2-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Lomb-Scargle Periodogram}
+
+\begin{center}\includegraphics[width=0.7\linewidth]{01-odds-and-sods_files/figure-beamer/lomb-3-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Wavelets}
+
+The power spectrum is often a global analysis of a time series; shows
+the power associated with periodicities over the entire time series
+
+In many time series these periodicities can wax and wane, gaining and
+loosing strength during different parts of the series
+
+Can look at the power spectrum in small chunks of a series ---
+\alert{evolutionary power spectrum}
+
+A better approach is to use \alert{wavelets}
+
+\end{frame}
+
+\begin{frame}{Wavelets}
+
+Wavelets are a local transform, describing the intensity of pattern at
+different scales at a particular location
+
+Wavelets scale a \emph{mother wavelet}, varying it's frequency, \&
+applying it locally to a time series
+
+Coefficients are estimated for the wavelet at each scale and frequency,
+evaluating the local power at particular frequencies
+
+\begin{center}\includegraphics[width=0.95\linewidth]{01-odds-and-sods_files/figure-beamer/wavelet-plot-1} \end{center}
+
+\end{frame}
+
+\begin{frame}{Wavelets}
+
+Originally, wavelets were defined for regularly-spaced data
+
+Newer developments, such as ``lifting'', allow for wavelets to be
+applied to irregular series
+
+One implementation in R is via the \textbf{mvcwt} package
+
+\end{frame}
+
+\begin{frame}{Wavelets example}
+
+\begin{center}\includegraphics[width=0.7\linewidth]{01-odds-and-sods_files/figure-beamer/signal-1} \end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]{Wavelets example}
+
+\begin{verbatim}
+Warning: executing %dopar% sequentially: no parallel backend registered
+\end{verbatim}
+
+\begin{center}\includegraphics[width=\linewidth]{01-odds-and-sods_files/figure-beamer/wavelet-1} \end{center}
+
+\end{frame}
+
+\section{Classification}\label{classification}
+
+\begin{frame}{Classification}
+
+Classification is a supervised learning problem
+
+We have known group labels for each of the \emph{n} samples in the
+training data
+
+In addition we have a series of variables we wish to use to predict the
+group labels
+
+Supervised because we know the groups --- constrast that with cluster
+analysis where we wish to find groups
+
+Classic methods include logistic regression and linear discriminants
+analysis (LDA)
+
+\end{frame}
+
+\begin{frame}{Classification}
+
+Classification is an important problem in machine learning and has
+attracted considerable interest from statsiticians
+
+Major advances include
+
+\begin{itemize}
+\tightlist
+\item
+  classification trees
+\item
+  random forests
+\item
+  boosted trees
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Classification trees}
+
+Response is a categorical variable
+
+Search through all variables and all possible locations for a split to
+find the split that best describes the response
+
+We want splits that result in the most pure nodes as possible
+
+Once we make one split, we repeat the process on the two parts
+recursively to make the nodes more pure
+
+Use cross validation to decide how many splits are need to predict the
+groups, without overfitting
+
+\end{frame}
+
+\begin{frame}{Classification trees}
+
+Neil Rose (UCL) collected Spheroidal Carbonaceous Particles from power
+stations the baurned different fuels
+
+\begin{itemize}
+\tightlist
+\item
+  Coal (3000)
+\item
+  Oil (1000)
+\item
+  Oil shale (2000)
+\end{itemize}
+
+The SCP surface chemistry was determined on 6000 particles
+
+Can we predict the fuel source from particle elemental composition?
+
+\end{frame}
+
+\begin{frame}{Classification tree}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/figure_8.1.pdf}
+\caption{Cost-complexity pruning the fitted tree}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Classification tree}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/figure_8.2.pdf}
+\caption{Fitted classification tree}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Classification tree}
+
+Overall error rate is 0.053
+
+\begin{longtable}[]{@{}lrrrr@{}}
+\toprule
+& Coal & Oil & Oil-Shale & Error rate\tabularnewline
+\midrule
+\endhead
+Coal & 2871 & 49 & 118 & 0.055\tabularnewline
+Oil & 1 & 938 & 11 & 0.028\tabularnewline
+Oil-Shale & 113 & 13 & 1817 & 0.063\tabularnewline
+\bottomrule
+\end{longtable}
+
+\end{frame}
+
+\begin{frame}{Random Forests}
+
+Trees are high-variance classifiers --- had we collected a different
+data set, we might get different splits due to sampling noise
+
+Can improve trees by \alert{bagging}; fit \emph{m} trees, each using a
+bootstrap sample from the original data \& count votes over all \emph{m}
+trees
+
+Leo Breiman showed that you can do better than bagging by adding more
+randomness to the tree building by forming individual splits only
+considering a small subset of predictor variables
+
+Each split uses a different set of randomly selected variables --- trees
+are grown large without pruning
+
+Fit an entire forest of trees and count the votes over all \emph{m}
+trees in the forest
+
+\end{frame}
+
+\begin{frame}{Random Forests}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/figure_8.6.pdf}
+\caption{Oout-of-bag error rates as trees added to forest}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Random Forests}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/figure_8.7.pdf}
+\caption{Which variables contribute most to node purity \& model
+accuracy?}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Random Forests}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/figure_8.8.pdf}
+\caption{\ldots{}same but now for specific groups}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Boosted trees}
+
+Boosted trees are a similar idea to Random Forests but differ in several
+important ways
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  individual trees in the ensemble are small trees --- often stubs with
+  1 split
+\item
+  each subsequent tree added to the ensemble tries to fit a weighted
+  version of the response
+
+  \begin{itemize}
+  \tightlist
+  \item
+    samples poorly predicted by the current set of trees get higher
+    weight
+  \item
+    hence subsequent trees aim to predict the hardest to predict of the
+    observations
+  \end{itemize}
+\item
+  we learn slowly; we don't take the full prediction but we down-weight
+  them
+
+  \begin{itemize}
+  \tightlist
+  \item
+    each tree adds only a little bit to the predictive power
+  \end{itemize}
+\end{enumerate}
+
+Surprisingly, this works and boosted trees are one of the better
+classification tool savailable\ldots{}
+
+\ldots{}but there is more to tune than with Random Forests
+
+\end{frame}
+
+\begin{frame}{Boosted trees}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/figure_8.9.pdf}
+\caption{\ldots{}same but now for specific groups}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Boosted trees}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/figure_8.10.pdf}
+\caption{\ldots{}same but now for specific groups}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Boosted trees}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/figure_8.11.pdf}
+\caption{\ldots{}same but now for specific groups}
+\end{figure}
+
+\end{frame}
+
+\section{Explaining one time series with
+another}\label{explaining-one-time-series-with-another}
+
+\begin{frame}{Using one time series to explain another}
+
+ARIMA models can include exogenous variables that predict the time
+series of interest
+
+For unevenly sampled data we can use regression models, esp GAMs, to
+model the effect of one variable (series) on another
+
+Two examples from
+\href{http://www.aslo.org/lo/toc/vol_54/issue_6_part_2/2529.pdf}{Simpson
+\& Anderson (2009) Limnology \& Oceanography}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Model effect of climate on diatom composition in Kassjön, a varved
+  lake in N Sweden
+\item
+  Model the effects of acid rain and climate on a diatom record from
+  Fionnaraich, NW Scotland
+\end{enumerate}
+
+\end{frame}
+
+\begin{frame}{Using one time series to explain another --- Kassjön}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/kassjoen-diatoms.png}
+\caption{\ldots{}same but now for specific groups}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Using one time series to explain another --- Kassjön}
+
+\columnsbegin
+\column{0.5\linewidth}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/kassjoen-effects.png}
+\caption{\ldots{}same but now for specific groups}
+\end{figure}
+
+\column{0.5\linewidth}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/kassjoen-effects-time-series.png}
+\caption{\ldots{}same but now for specific groups}
+\end{figure}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}{Using one time series to explain another --- Fionnaraich}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/lcfr-pca-scores.png}
+\caption{\ldots{}same but now for specific groups}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Using one time series to explain another --- Fionnaraich}
+
+\columnsbegin
+\column{0.5\linewidth}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/lcfr-effects.png}
+\caption{\ldots{}same but now for specific groups}
+\end{figure}
+
+\column{0.5\linewidth}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/lcfr-effects-time-series.png}
+\caption{\ldots{}same but now for specific groups}
+\end{figure}
+
+\columnsend
+
+\end{frame}
+
+\begin{frame}{Using one time series to explain another --- Fionnaraich}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{figs/lcfr-fitted-values.png}
+\caption{\ldots{}same but now for specific groups}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Re-use}
+
+Copyright © (2015--2017) Gavin L. Simpson Some Rights Reserved
+
+Unless indicated otherwise, this slide deck is licensed under a
+\href{http://creativecommons.org/licenses/by/4.0/}{Creative Commons
+Attribution 4.0 International License}.
+
+\begin{center}
+  \ccby
+\end{center}
+
+\end{frame}
+
+\end{document}

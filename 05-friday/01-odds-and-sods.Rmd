@@ -1,0 +1,336 @@
+---
+title: "Odds and sods"
+author: Gavin L. Simpson
+date: U Adelaide 2017 • Feb 13--17 2017
+fontsize: 11pt
+classoption: "compress, aspectratio=169"
+<!-- bibliography: 00-refs.bib -->
+output:
+  beamer_presentation:
+    theme: metropolis
+    keep_tex: true
+    highlight: tango
+    slide_level: 2
+    template: ~/work/teaching/adelaide/feb-2017/slide-template-feb-2017.tex
+    fig_width: 6
+    fig_height: 3.5
+    fig_crop: false
+    pandoc_args: [
+      "--latex-engine=xelatex"
+    ]
+---
+
+```{r setup-options, echo = FALSE, results = "hide", message = FALSE}
+knitr::opts_chunk$set(comment=NA, prompt=TRUE, fig.align = "center",
+                      out.width = "0.7\\linewidth",
+                      echo = FALSE, message = TRUE, warning = TRUE,
+                      cache = TRUE)
+knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
+```
+
+```{r packages, echo = FALSE, results = "hide", message = FALSE, cache=FALSE}
+library("tidyr")
+library("ggplot2")
+library("cowplot")
+theme_set(theme_bw())
+library("mvcwt")
+```
+
+# Spectral analysis & wavelets
+
+## Spectral analysis
+
+## Lomb-Scargle power spectrum
+
+Sprectral analysis requires evenly spaced data --- at least the classical methods do
+
+Could use interpolation to make the data enevnly spaced --- introduces strong artefacts into the data
+
+Lomb evaluated the sine and cosine functions only at the observed time points with an offset $\tau$, which makes the $P_x(\omega)$ independent of the time points being shifted around
+
+Scargle showed that the choice of $\tau$ used by Lomb has the effect that $P_x(\omega)$ obtained using Lomb's method are identical to the least squares fit
+
+$$t_t = A \cos \omega t + B \sin \omega t$$
+
+($\omega$ is the angular frequency)
+
+## Lomb-Scargle power spectrum
+
+```{r lomb-1, cache=FALSE, results="hide", message = FALSE, echo = FALSE}
+library("lomb")
+library("pangaear")
+library("tibble")
+library("ggplot2")
+theme_set(theme_bw())
+library("mgcv")
+```
+
+```{r lomb-2, dev = "cairo_pdf", results = "hide", message = FALSE} 
+res <- pg_data(doi = "10.1594/PANGAEA.857573")
+foram <- res[[1]]$data
+names(foram) <- c("Depth", "Age_AD", "Age_kaBP", "d18O")
+ylabel <- expression(delta^{18} * O ~ "[‰ VPDB]")
+xlabel <- "Age [ka BP]"
+
+ggplot(foram, aes(y = d18O, x = Age_kaBP)) +
+    geom_path() +
+    scale_x_reverse(sec.axis = sec_axis( ~ 1950 - (. * 1000), name = "Age [AD]")) +
+    scale_y_reverse() +
+    labs(y = ylabel, x = xlabel)
+```
+
+## Lomb-Scargle Periodogram
+
+```{r lomb-3}
+foram <- with(foram, add_column(foram, Age = - Age_kaBP))
+foram.lsp <- with(foram, lsp(d18O, times = Age, type = "period", ofac = 10, plot = FALSE))
+plot(foram.lsp)
+```
+
+## Wavelets
+
+The power spectrum is often a global analysis of a time series; shows the power associated with periodicities over the entire time series
+
+In many time series these periodicities can wax and wane, gaining and loosing strength during different parts of the series
+
+Can look at the power spectrum in small chunks of a series --- \alert{evolutionary power spectrum}
+
+A better approach is to use \alert{wavelets}
+
+## Wavelets
+
+Wavelets are a local transform, describing the intensity of pattern at different scales at a particular location 
+
+Wavelets scale a *mother wavelet*, varying it's frequency, & applying it locally to a time series
+
+Coefficients are estimated for the wavelet at each scale and frequency, evaluating the local power at particular frequencies
+
+```{r wavelet-plot, out.width="0.95\\linewidth", fig.width = 16, fig.height = 5}
+morlet <- function(t, omega) { #0.8125){  # omega here is only the desired center frequency
+    j <- complex(imaginary = 1)
+    Re(((1/(pi^(1/4))) * exp(-((t^2)/2)) * exp(-(j * 2 * pi * omega *t))))  
+}
+## The standard support for the Morlet Wavelet is [-4,4]
+vals <- 0.8125 / c(4, 2, 1, 0.5)
+sup <- seq(-4, 4, length = 1000)
+df <- data.frame(t = rep(sup, 4L),
+                 scale = c(morlet(sup, omega = vals[1]),
+                           morlet(sup, omega = vals[2]),
+                           morlet(sup, omega = vals[3]),
+                           morlet(sup, omega = vals[4])),
+                 omega = factor(rep(vals, each = 1000)))
+
+ggplot(df, aes(x = t, y = scale, colour = omega)) +
+    geom_line() + facet_wrap( ~ omega, ncol = 4) +
+    theme(legend.position = "none")
+```
+
+## Wavelets
+
+Originally, wavelets were defined for regularly-spaced data
+
+Newer developments, such as "lifting", allow for wavelets to be applied to irregular series
+
+One implementation in R is via the **mvcwt** package
+
+## Wavelets example
+
+```{r signal}
+s.freq <- 480                        # sample frequency
+t <- seq(1/s.freq,5,by=1/s.freq)     # time steps in test signal below
+y <- sinpi(2*3*t)+sinpi(2*6*t)+sinpi(2*11*t)+sinpi(2*100*t) # the middle digit in each function represents frequency
+z <- sinpi(2*23*t)
+z[50:150] <- 0                       # zeroes will represent discontinuities at 23Hz
+z[300:480] <- 0
+f <- y + z                           # signal to be analyzed
+ggplot(data.frame(t = t, f = f), aes(x = t, y = f)) +
+    geom_line()
+```
+
+## Wavelets example
+
+```{r wavelet, cache = TRUE, fig.width = 14, fig.height = 7, out.width = "\\linewidth"}
+w <- with(foram, mvcwt(Age, d18O))
+image(w, z.fun = "Re")
+```
+
+# Classification
+
+## Classification
+
+Classification is a supervised learning problem
+
+We have known group labels for each of the *n* samples in the training data
+
+In addition we have a series of variables we wish to use to predict the group labels
+
+Supervised because we know the groups --- constrast that with cluster analysis where we wish to find groups
+
+Classic methods include logistic regression and linear discriminants analysis (LDA)
+
+## Classification
+
+Classification is an important problem in machine learning and has attracted considerable interest from statsiticians
+
+Major advances include
+
+- classification trees
+- random forests
+- boosted trees
+
+## Classification trees
+
+Response is a categorical variable
+
+Search through all variables and all possible locations for a split to find the split that best describes the response
+
+We want splits that result in the most pure nodes as possible
+
+Once we make one split, we repeat the process on the two parts recursively to make the nodes more pure
+
+Use cross validation to decide how many splits are need to predict the groups, without overfitting
+
+## Classification trees
+
+Neil Rose (UCL) collected Spheroidal Carbonaceous Particles from power stations the baurned different fuels
+
+- Coal (3000)
+- Oil (1000)
+- Oil shale (2000)
+
+The SCP surface chemistry was determined on 6000 particles
+
+Can we predict the fuel source from particle elemental composition?
+
+## Classification tree
+
+![Cost-complexity pruning the fitted tree](figs/figure_8.1.pdf)
+
+## Classification tree
+
+![Fitted classification tree](figs/figure_8.2.pdf)
+
+## Classification tree
+
+Overall error rate is 0.053
+
+```{r cart-error-rate, results="asis"}
+tab <- data.frame(Coal = c(2871, 1, 113), Oil = c(49, 938, 13),
+                  `Oil-Shale` = c(118, 11, 1817),
+                  `Error rate` = c(0.055, 0.028, 0.063),
+                  check.names = FALSE)
+rownames(tab) <- c("Coal", "Oil", "Oil-Shale")
+knitr::kable(tab)
+```
+
+## Random Forests
+
+Trees are high-variance classifiers --- had we collected a different data set, we might get different splits due to sampling noise
+
+Can improve trees by \alert{bagging}; fit *m* trees, each using a bootstrap sample from the original data & count votes over all *m* trees
+
+Leo Breiman showed that you can do better than bagging by adding more randomness to the tree building by forming individual splits only considering a small subset of predictor variables
+
+Each split uses a different set of randomly selected variables --- trees are grown large without pruning
+
+Fit an entire forest of trees and count the votes over all *m* trees in the forest
+
+## Random Forests
+
+![Oout-of-bag error rates as trees added to forest](figs/figure_8.6.pdf)
+
+## Random Forests
+
+![Which variables contribute most to node purity & model accuracy?](figs/figure_8.7.pdf)
+
+## Random Forests
+
+![...same but now for specific groups](figs/figure_8.8.pdf)
+
+## Boosted trees
+
+Boosted trees are a similar idea to Random Forests but differ in several important ways
+
+1. individual trees in the ensemble are small trees --- often stubs with 1 split
+2. each subsequent tree added to the ensemble tries to fit a weighted version of the response
+    - samples poorly predicted by the current set of trees get higher weight
+	- hence subsequent trees aim to predict the hardest to predict of the observations
+3. we learn slowly; we don't take the full prediction but we down-weight them
+    - each tree adds only a little bit to the predictive power
+
+Surprisingly, this works and boosted trees are one of the better classification tool savailable...
+
+...but there is more to tune than with Random Forests
+
+## Boosted trees
+
+![...same but now for specific groups](figs/figure_8.9.pdf)
+
+## Boosted trees
+
+![...same but now for specific groups](figs/figure_8.10.pdf)
+
+## Boosted trees
+
+![...same but now for specific groups](figs/figure_8.11.pdf)
+
+# Explaining one time series with another
+
+## Using one time series to explain another
+
+ARIMA models can include exogenous variables that predict the time series of interest
+
+For unevenly sampled data we can use regression models, esp GAMs, to model the effect of one variable (series) on another
+
+Two examples from [Simpson & Anderson (2009) Limnology & Oceanography](http://www.aslo.org/lo/toc/vol_54/issue_6_part_2/2529.pdf)
+
+1. Model effect of climate on diatom composition in Kassjön, a varved lake in N Sweden
+2. Model the effects of acid rain and climate on a diatom record from Fionnaraich, NW Scotland
+
+## Using one time series to explain another --- Kassjön
+
+![...same but now for specific groups](figs/kassjoen-diatoms.png)
+
+## Using one time series to explain another --- Kassjön
+
+\columnsbegin
+\column{0.5\linewidth}
+
+![...same but now for specific groups](figs/kassjoen-effects.png)
+
+\column{0.5\linewidth}
+
+![...same but now for specific groups](figs/kassjoen-effects-time-series.png)
+
+\columnsend
+
+## Using one time series to explain another --- Fionnaraich
+
+![...same but now for specific groups](figs/lcfr-pca-scores.png)
+
+## Using one time series to explain another --- Fionnaraich
+
+\columnsbegin
+\column{0.5\linewidth}
+
+![...same but now for specific groups](figs/lcfr-effects.png)
+
+\column{0.5\linewidth}
+
+![...same but now for specific groups](figs/lcfr-effects-time-series.png)
+
+\columnsend
+
+## Using one time series to explain another --- Fionnaraich
+
+![...same but now for specific groups](figs/lcfr-fitted-values.png)
+
+## Re-use
+
+Copyright © (2015--2017) Gavin L. Simpson Some Rights Reserved
+
+Unless indicated otherwise, this slide deck is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
+
+\begin{center}
+  \ccby
+\end{center}
