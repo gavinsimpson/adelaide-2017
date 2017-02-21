@@ -14,6 +14,12 @@
 	R CMD texi2pdf --build=clean 04-stratigraphic-prac.tex
 	rm Rplots.pdf
 
+05-braya-so-prac.pdf: 05-braya-so-prac.Rmd
+	Rscript -e "rmarkdown::render(\"05-braya-so-prac.Rmd\")"
+
+06-small-water-prac.pdf: 06-small-water-prac.Rmd
+	Rscript -e "rmarkdown::render(\"06-small-water-prac.Rmd\")"
+
 purl: 01-time-series.Rmd  02-stratigraphic-data.Rmd
 	Rscript -e "knitr::purl(\"01-time-series.Rmd\")"
 	Rscript -e "knitr::purl(\"02-stratigraphic-data.Rmd\")"
