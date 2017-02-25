@@ -150,14 +150,19 @@ ggplot(data.frame(t = t, f = f), aes(x = t, y = f)) +
 ## Wavelets example
 
 ```{r wavelet, cache = TRUE, fig.width = 14, fig.height = 7, out.width = "\\linewidth"}
+library("doParallel")
+cl <- makeCluster(2)
+registerDoParallel(cl)
 w <- with(foram, mvcwt(Age, d18O))
 image(w, z.fun = function(x) abs(x)^2)
+stopCluster(cl)
 
 ## library("doParallel")
 ## cl <- makeCluster(2)
 ## registerDoParallel(cl)
 ## w2 <- mvcwt(t, y)
 ## image(w2, z.fun = function(x) abs(x))
+## stopCluster(cl)
 ```
 
 # Classification
