@@ -42,9 +42,9 @@ library("mvcwt")
 
 ## Lomb-Scargle power spectrum
 
-Sprectral analysis requires evenly spaced data --- at least the classical methods do
+Spectral analysis requires evenly spaced data --- at least the classical methods do
 
-Could use interpolation to make the data enevnly spaced --- introduces strong artefacts into the data
+Could use interpolation to make the data unevenly spaced --- introduces strong artifacts into the data
 
 Lomb evaluated the sine and cosine functions only at the observed time points with an offset $\tau$, which makes the $P_x(\omega)$ independent of the time points being shifted around
 
@@ -151,7 +151,13 @@ ggplot(data.frame(t = t, f = f), aes(x = t, y = f)) +
 
 ```{r wavelet, cache = TRUE, fig.width = 14, fig.height = 7, out.width = "\\linewidth"}
 w <- with(foram, mvcwt(Age, d18O))
-image(w, z.fun = "Re")
+image(w, z.fun = function(x) abs(x)^2)
+
+## library("doParallel")
+## cl <- makeCluster(2)
+## registerDoParallel(cl)
+## w2 <- mvcwt(t, y)
+## image(w2, z.fun = function(x) abs(x))
 ```
 
 # Classification
@@ -164,13 +170,13 @@ We have known group labels for each of the *n* samples in the training data
 
 In addition we have a series of variables we wish to use to predict the group labels
 
-Supervised because we know the groups --- constrast that with cluster analysis where we wish to find groups
+Supervised because we know the groups --- contrast that with cluster analysis where we wish to find groups
 
-Classic methods include logistic regression and linear discriminants analysis (LDA)
+Classic methods include logistic regression and linear discriminant analysis (LDA)
 
 ## Classification
 
-Classification is an important problem in machine learning and has attracted considerable interest from statsiticians
+Classification is an important problem in machine learning and has attracted considerable interest from statisticians
 
 Major advances include
 
@@ -188,11 +194,11 @@ We want splits that result in the most pure nodes as possible
 
 Once we make one split, we repeat the process on the two parts recursively to make the nodes more pure
 
-Use cross validation to decide how many splits are need to predict the groups, without overfitting
+Use cross validation to decide how many splits are need to predict the groups, without over-fitting
 
 ## Classification trees
 
-Neil Rose (UCL) collected Spheroidal Carbonaceous Particles from power stations the baurned different fuels
+Neil Rose (UCL) collected Spheroidal Carbonaceous Particles from power stations the burned different fuels
 
 - Coal (3000)
 - Oil (1000)
@@ -258,7 +264,7 @@ Boosted trees are a similar idea to Random Forests but differ in several importa
 3. we learn slowly; we don't take the full prediction but we down-weight them
     - each tree adds only a little bit to the predictive power
 
-Surprisingly, this works and boosted trees are one of the better classification tool savailable...
+Surprisingly, this works and boosted trees are one of the better classification tool available...
 
 ...but there is more to tune than with Random Forests
 
